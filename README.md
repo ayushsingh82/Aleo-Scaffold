@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BlindBet
 
-## Getting Started
+BlindBet is a **private prediction market** built on the Aleo blockchain. Leveraging Aleo's zero-knowledge cryptography, BlindBet enables users to create and trade on prediction markets while maintaining complete privacy and confidentiality.
 
-First, run the development server:
+## 🎯 What is BlindBet?
+
+BlindBet is a decentralized prediction market platform where users can:
+- Create markets on any topic (sports, politics, crypto, current events, etc.)
+- Trade positions with complete privacy
+- Resolve markets and claim winnings securely
+
+### Key Features
+
+- 🔒 **Complete Privacy** - All transactions and positions are encrypted using zero-knowledge proofs
+- 🌐 **Decentralized** - Built on Aleo's Layer 1 blockchain for trustless execution
+- 💰 **Permissionless** - Anyone can create markets or participate without KYC
+- ⚡ **Fast Settlement** - Quick market resolution and prize distribution
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ 
+- Aleo CLI tools (for local development)
+- A Leo-compatible wallet
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Clone the repository
+git clone https://github.com/yourusername/blindbet.git
+cd blindbet
+
+# Install dependencies
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Start development server
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Visit `http://localhost:3000` to access the application.
 
-## Learn More
+## 🏗️ Architecture
 
-To learn more about Next.js, take a look at the following resources:
+- **Frontend**: Next.js 14+ with TypeScript
+- **Smart Contracts**: Leo (Aleo's smart contract language)
+- **Privacy**: Zero-knowledge proofs via Aleo's cryptographic libraries
+- **Styling**: Tailwind CSS
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📚 Resources
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- [Aleo Documentation](https://developer.aleo.org/)
+- [Leo Programming Language](https://developer.aleo.org/leo/)
+- [Zero-Knowledge Proofs](https://zeroknowledge.fm/)
 
-## Deploy on Vercel
+## 🤝 Contributing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Contributions are welcome! Please read our contributing guidelines before submitting PRs.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📄 License
+
+MIT License - see LICENSE file for details.
+
