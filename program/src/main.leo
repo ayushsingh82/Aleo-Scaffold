@@ -13,6 +13,11 @@ program onchainbio.aleo {
         updated_at_block: u64,
     }
 
+    // Constructor for program deployment
+    // @noupgrade prevents the program from being upgraded after deployment
+    @noupgrade
+    async constructor() {}
+
     // Transition function to register a new bio profile
     // Creates a new BioProfile record for the caller
     transition register_bio(
@@ -69,16 +74,4 @@ program onchainbio.aleo {
         );
     }
 
-    // View function to check if a bio exists for an address
-    // This is a public function that can be called by anyone
-    // Note: In Aleo, view functions can access public state but not private records
-    // This function would need to be adapted based on your specific use case
-    view view_bio_exists(
-        owner: address,
-    ) -> bool {
-        // This is a placeholder view function
-        // In practice, you would need to implement logic to check if a bio exists
-        // This might require storing public mappings or using other Aleo features
-        return false;
-    }
 }

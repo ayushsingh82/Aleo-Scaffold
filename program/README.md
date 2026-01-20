@@ -102,8 +102,22 @@ leo test
 ### Deploy the program:
 
 ```bash
-leo deploy
+leo deploy --broadcast --yes
 ```
+
+## Deployment
+
+The program `onchainbio.aleo` has been deployed to Aleo Testnet.
+
+**Program Address:** `onchainbio.aleo`
+
+**Deployment Transaction:** [View on Explorer](https://testnet.explorer.provable.com/transaction/at1zq7k39c76wyqspwzs55lqdj5znzhdhjkv3p09wttn45l9r5j3vrs8ng3j7)
+
+**Program Page:** [View Program](https://testnet.explorer.provable.com/program/onchainbio.aleo)
+
+**Network:** Testnet  
+**Status:** ✅ Deployed and Confirmed  
+**Transaction ID:** `at1zq7k39c76wyqspwzs55lqdj5znzhdhjkv3p09wttn45l9r5j3vrs8ng3j7`
 
 ## Usage
 

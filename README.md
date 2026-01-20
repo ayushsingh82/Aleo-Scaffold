@@ -52,18 +52,33 @@ Visit `http://localhost:3000` to access the application.
 
 ```
 aleo-scaffold/
-├── packages/
-│   ├── nextjs/          # Next.js frontend application
-│   │   └── app/
-│   │       ├── page.tsx # Home page
-│   │       ├── bio/     # Bio page
-│   │       └── debug/   # Debug modules page
-│   └── aleo/            # Aleo programs
-│       └── sources/     # Leo program source files
-│           └── OnchainBio.aleo
-├── README.md
-└── package.json
+├── my-app/
+│   ├── app/             # Next.js frontend application
+│   │   ├── page.tsx     # Home page
+│   │   ├── bio/         # Bio page
+│   │   └── debug/       # Debug modules page
+│   ├── program/         # Leo program
+│   │   └── src/
+│   │       └── main.leo # onchainbio.aleo source
+│   ├── README.md
+│   └── package.json
+├── AleoPass/            # Example AleoPass project
+└── README.md
 ```
+
+## Deployment
+
+The `onchainbio.aleo` program has been deployed to Aleo Testnet.
+
+**Program Address:** `onchainbio.aleo`
+
+**Deployment Transaction:** [View on Explorer](https://testnet.explorer.provable.com/transaction/at1zq7k39c76wyqspwzs55lqdj5znzhdhjkv3p09wttn45l9r5j3vrs8ng3j7)
+
+**Program Page:** [View Program](https://testnet.explorer.provable.com/program/onchainbio.aleo)
+
+**Network:** Testnet  
+**Status:** ✅ Deployed and Confirmed  
+**Transaction ID:** `at1zq7k39c76wyqspwzs55lqdj5znzhdhjkv3p09wttn45l9r5j3vrs8ng3j7`
 
 ## Usage
 
@@ -73,7 +88,7 @@ Get started by editing `packages/nextjs/app/page.tsx`
 
 ### Editing Leo Programs
 
-Edit your Aleo program `OnchainBio.aleo` in `packages/aleo/sources`
+Edit your Aleo program `onchainbio.aleo` in `program/src/main.leo`
 
 ### Debugging Modules
 
