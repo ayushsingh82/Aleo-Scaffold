@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "@demox-labs/aleo-wallet-adapter-reactui/styles.css";
 
 :root {
   --background: #ffffff;

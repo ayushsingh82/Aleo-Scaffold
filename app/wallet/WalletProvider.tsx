@@ -28,7 +28,7 @@ export const WalletProvider: FC<WalletProviderProps> = ({ children }) => {
       wallets={wallets}
       decryptPermission={DecryptPermission.UponRequest}
       network={WalletAdapterNetwork.Localnet}
-      autoConnect={true}
+      autoConnect={false}
     >
       <WalletModalProvider>{children}</WalletModalProvider>
     </AleoWalletProvider>

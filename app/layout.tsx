@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "@demox-labs/aleo-wallet-adapter-reactui/styles.css";
 import { ClientWalletProvider } from "./wallet/ClientWalletProvider";
 
 const geistSans = Geist({
