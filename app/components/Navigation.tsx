@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { WalletButton } from "../wallet/WalletButton";
 
 function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   const dimensions = size === "sm" ? 32 : size === "lg" ? 56 : 40;
@@ -54,9 +55,17 @@ export default function Navigation() {
             >
               Debug
             </Link>
-            <button className="px-4 py-2 bg-black text-white rounded-lg hover:bg-black/80 transition-colors font-medium">
-              Connect Wallet
-            </button>
+            <Link 
+              href="/docs" 
+              className={`font-medium transition-colors ${
+                pathname === "/docs" 
+                  ? "text-black" 
+                  : "text-black/70 hover:text-black"
+              }`}
+            >
+              Docs
+            </Link>
+            <WalletButton />
           </div>
         </div>
       </div>

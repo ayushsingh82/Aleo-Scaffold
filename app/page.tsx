@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { WalletButton } from "./wallet/WalletButton";
 
 export default function Home() {
   const pathname = usePathname();
@@ -11,7 +12,7 @@ export default function Home() {
     <div className="min-h-screen" style={{ backgroundColor: "#FFA977" }}>
       {/* Header */}
       <header className="flex items-center justify-between px-4 sm:px-8 py-2 sm:py-3 border-b border-black/20">
-        <div className="flex items-center gap-2 sm:gap-3">
+        <Link href="/" className="flex items-center gap-2 sm:gap-3 cursor-pointer hover:opacity-80 transition-opacity">
           <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black flex items-center justify-center">
             <svg
               className="w-6 h-6 sm:w-7 sm:h-7 text-white"
@@ -28,7 +29,7 @@ export default function Home() {
             </svg>
           </div>
           <h1 className="text-lg sm:text-2xl font-bold text-black font-serif">Aleo-Scaffold</h1>
-        </div>
+        </Link>
         <div className="flex items-center gap-4 sm:gap-6">
           <Link 
             href="/bio" 
@@ -50,9 +51,17 @@ export default function Home() {
           >
             Debug
           </Link>
-          <button className="px-4 py-2 bg-black text-white rounded-lg hover:bg-black/80 transition-colors font-medium font-serif">
-            Connect Wallet
-          </button>
+          <Link 
+            href="/docs" 
+            className={`font-medium transition-colors font-serif ${
+              pathname === "/docs" 
+                ? "text-black" 
+                : "text-black/70 hover:text-black"
+            }`}
+          >
+            Docs
+          </Link>
+          <WalletButton />
         </div>
       </header>
 
