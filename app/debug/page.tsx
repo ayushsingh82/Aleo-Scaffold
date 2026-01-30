@@ -80,18 +80,9 @@ export default function DebugPage() {
         {/* Onchain Bio Module */}
         {selectedTab === "bio" && (
         <div className="bg-white rounded-lg p-6 mb-8">
-          <div className="flex items-center justify-between mb-6">
+          <div className="mb-6">
             <h2 className="text-2xl font-bold text-black">onchain_bio</h2>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white font-bold">
-                {shortAddress(onchainBioAddress).charAt(2)}
-              </div>
-              <div>
-                <p className="text-black font-medium">{shortAddress(onchainBioAddress)}</p>
-                <p className="text-black/60 text-sm">Balance: 0.996619 ALEO</p>
-                <p className="text-black/60 text-sm">Network: Aleo Testnet</p>
-              </div>
-            </div>
+            <p className="text-black/60 text-sm mt-1">Program: onchainbio.aleo</p>
           </div>
 
           {/* View Function */}
@@ -171,18 +162,9 @@ export default function DebugPage() {
         {/* Onchain Poems Module */}
         {selectedTab === "poem" && (
         <div className="bg-white rounded-lg p-6">
-          <div className="flex items-center justify-between mb-6">
+          <div className="mb-6">
             <h2 className="text-2xl font-bold text-black">onchain_poems</h2>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white font-bold">
-                {shortAddress(onchainPoemsAddress).charAt(2)}
-              </div>
-              <div>
-                <p className="text-black font-medium">{shortAddress(onchainPoemsAddress)}</p>
-                <p className="text-black/60 text-sm">Balance: 0.996619 ALEO</p>
-                <p className="text-black/60 text-sm">Network: Aleo Testnet</p>
-              </div>
-            </div>
+            <p className="text-black/60 text-sm mt-1">Program: onchainpoems.aleo</p>
           </div>
 
           {/* View Function */}

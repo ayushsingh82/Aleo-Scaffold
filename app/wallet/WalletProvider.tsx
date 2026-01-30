@@ -3,7 +3,7 @@
 import React, { FC, useMemo, ReactNode } from "react";
 import { WalletProvider as AleoWalletProvider } from "@demox-labs/aleo-wallet-adapter-react";
 import { WalletModalProvider, WalletModal } from "@demox-labs/aleo-wallet-adapter-reactui";
-import { LeoWalletAdapter } from "./LeoWalletAdapter";
+import { LeoWalletAdapter } from "@demox-labs/aleo-wallet-adapter-leo";
 import {
   DecryptPermission,
   WalletAdapterNetwork,
@@ -30,7 +30,7 @@ export const WalletProvider: FC<WalletProviderProps> = ({ children }) => {
     <AleoWalletProvider
       wallets={wallets}
       decryptPermission={DecryptPermission.UponRequest}
-      network={WalletAdapterNetwork.Testnet}
+      network={WalletAdapterNetwork.TestnetBeta}
       autoConnect={false}
       onError={(error) => {
         console.error("Wallet provider error:", error);

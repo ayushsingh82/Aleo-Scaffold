@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import Navigation from "../components/Navigation";
 
 export default function BioPage() {
+  const { publicKey } = useWallet();
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
   const [address, setAddress] = useState("");
@@ -37,7 +39,11 @@ export default function BioPage() {
         {/* Connected Address */}
         <div className="bg-white rounded-lg p-6 mb-8">
           <p className="text-black font-semibold mb-2">Connected Address:</p>
-          <p className="text-black/60 text-sm">Not connected</p>
+          {publicKey ? (
+            <p className="text-black text-sm font-mono break-all">{publicKey}</p>
+          ) : (
+            <p className="text-black/60 text-sm">Not connected</p>
+          )}
         </div>
 
         {/* Register or Update Bio */}

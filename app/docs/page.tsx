@@ -1,371 +1,192 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import Navigation from "../components/Navigation";
 
-const docs = [
+interface DocSection {
+  id: string;
+  title: string;
+  description: string;
+  sections: {
+    title: string;
+    content: string;
+    type?: "text" | "code" | "list" | "heading";
+  }[];
+}
+
+const docs: DocSection[] = [
   {
     id: "installation",
     title: "Installation",
     description: "Set up your development environment and install required tools",
-    content: `
-# Installation Guide
-
-This guide will help you set up the Aleo Scaffold development environment.
-
-## Prerequisites
-
-- **Node.js** 18+ and npm
-- **Rust** (for Leo CLI)
-- **Git**
-
-## Step 1: Install Node.js Dependencies
-
-\`\`\`bash
-cd my-app
-npm install
-\`\`\`
-
-## Step 2: Install Leo CLI
-
-Leo is the programming language for Aleo. You need it to build and deploy programs.
-
-### Option 1: Official Installer (Recommended)
-
-\`\`\`bash
-curl -L https://get.aleo.org/install | bash
-\`\`\`
-
-After installation, restart your terminal or run:
-\`\`\`bash
-source ~/.zshrc  # or source ~/.bash_profile
-\`\`\`
-
-### Option 2: Build from Source
-
-If the installer doesn't work:
-
-\`\`\`bash
-# Install Rust if you don't have it
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# Clone and build Leo
-git clone https://github.com/AleoHQ/leo.git
-cd leo
-cargo install --path .
-\`\`\`
-
-### Verify Leo Installation
-
-\`\`\`bash
-leo --version
-\`\`\`
-
-You should see something like: \`leo 3.x.x\`
-
-## Step 3: Set Up Your Development Environment
-
-### Install Development Tools
-
-\`\`\`bash
-# Install TypeScript globally (optional)
-npm install -g typescript
-
-# Install ESLint (optional)
-npm install -g eslint
-\`\`\`
-
-## Step 4: Get Testnet Credits
-
-Before deploying, you need testnet credits:
-
-1. Visit [Aleo Faucet](https://faucet.aleo.org/)
-2. Or join [Aleo Discord](https://discord.aleo.org/) and request credits
-
-## Step 5: Generate a Private Key
-
-\`\`\`bash
-leo account new
-\`\`\`
-
-Save your private key securely! You'll need it for deployment.
-
-## Step 6: Run the Development Server
-
-\`\`\`bash
-npm run dev
-\`\`\`
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-    `
+    sections: [
+      {
+        title: "Prerequisites",
+        content: "Node.js 18+, Rust (for Leo CLI), Git",
+        type: "list"
+      },
+      {
+        title: "Step 1: Install Node.js Dependencies",
+        content: "cd my-app\nnpm install",
+        type: "code"
+      },
+      {
+        title: "Step 2: Install Leo CLI",
+        content: "Leo is the programming language for Aleo. You need it to build and deploy programs.",
+        type: "text"
+      },
+      {
+        title: "Option 1: Official Installer (Recommended)",
+        content: "curl -L https://get.aleo.org/install | bash",
+        type: "code"
+      },
+      {
+        title: "After installation, restart your terminal or run:",
+        content: "source ~/.zshrc  # or source ~/.bash_profile",
+        type: "code"
+      },
+      {
+        title: "Verify Leo Installation",
+        content: "leo --version",
+        type: "code"
+      },
+      {
+        title: "Step 3: Get Testnet Credits",
+        content: "Visit Aleo Faucet at faucet.aleo.org or join Aleo Discord and request credits",
+        type: "text"
+      },
+      {
+        title: "Step 4: Generate a Private Key",
+        content: "leo account new",
+        type: "code"
+      },
+      {
+        title: "Step 5: Run the Development Server",
+        content: "npm run dev",
+        type: "code"
+      },
+      {
+        title: "",
+        content: "Open http://localhost:3000 in your browser",
+        type: "text"
+      }
+    ]
   },
   {
     id: "deployment",
     title: "Deployment",
     description: "Learn how to deploy your Aleo program to testnet",
-    content: `
-# Deployment Guide
-
-This guide will help you deploy your Aleo program to the testnet.
-
-## Prerequisites
-
-1. **Leo CLI installed** - See Installation Guide
-2. **Private Key** - You need an Aleo private key with testnet credits
-3. **Program Built** - Your program must compile successfully
-
-## Getting Testnet Credits
-
-Before deploying, you need testnet credits. You can get them from:
-- [Aleo Faucet](https://faucet.aleo.org/)
-- [Aleo Discord](https://discord.aleo.org/)
-
-## Deployment Steps
-
-### 1. Build Your Program
-
-First, make sure your program compiles:
-
-\`\`\`bash
-cd program
-LEO_DISABLE_UPDATE_CHECK=1 leo build
-\`\`\`
-
-### 2. Deploy to Testnet
-
-Deploy using the deploy script:
-
-\`\`\`bash
-cd program
-./deploy.sh YOUR_PRIVATE_KEY
-\`\`\`
-
-Or deploy manually:
-
-\`\`\`bash
-LEO_DISABLE_UPDATE_CHECK=1 leo deploy \\
-  --private-key YOUR_PRIVATE_KEY \\
-  --network testnet \\
-  --endpoint https://api.explorer.provable.com/v1 \\
-  --yes \\
-  --broadcast
-\`\`\`
-
-### 3. Verify Deployment
-
-After deployment, you'll receive:
-- **Transaction ID**: Use this to track your deployment
-- **Program Address**: Your program's on-chain identifier
-
-Check your deployment on the [Aleo Explorer](https://testnet.explorer.provable.com/)
-
-## Common Issues
-
-### Insufficient Credits
-- **Error**: "Your public balance is insufficient"
-- **Solution**: Get more testnet credits from the faucet
-
-### Program Already Exists
-- **Error**: "The program already exists on the network"
-- **Solution**: Use \`leo upgrade\` instead of \`leo deploy\`, or change the program name
-    `
+    sections: [
+      {
+        title: "Prerequisites",
+        content: "Leo CLI installed, Private Key with testnet credits, Program built successfully",
+        type: "list"
+      },
+      {
+        title: "Getting Testnet Credits",
+        content: "Visit Aleo Faucet (faucet.aleo.org) or Aleo Discord (discord.aleo.org)",
+        type: "text"
+      },
+      {
+        title: "Step 1: Build Your Program",
+        content: "cd program\nLEO_DISABLE_UPDATE_CHECK=1 leo build",
+        type: "code"
+      },
+      {
+        title: "Step 2: Deploy to Testnet",
+        content: "cd program\n./deploy.sh YOUR_PRIVATE_KEY",
+        type: "code"
+      },
+      {
+        title: "Or deploy manually:",
+        content: "LEO_DISABLE_UPDATE_CHECK=1 leo deploy --private-key YOUR_PRIVATE_KEY --network testnet --endpoint https://api.explorer.provable.com/v1 --yes --broadcast",
+        type: "code"
+      },
+      {
+        title: "Step 3: Verify Deployment",
+        content: "After deployment, you'll receive a Transaction ID and Program Address. Check your deployment on the Aleo Explorer at testnet.explorer.provable.com",
+        type: "text"
+      },
+      {
+        title: "Common Issues",
+        content: "Insufficient Credits: Get more testnet credits from the faucet\nProgram Already Exists: Use leo upgrade instead, or change the program name",
+        type: "list"
+      }
+    ]
   },
   {
     id: "hooks",
     title: "React Hooks",
     description: "Custom React hooks for interacting with Aleo programs",
-    content: `
-# React Hooks for Aleo
-
-This scaffold provides custom React hooks to interact with Aleo programs easily.
-
-## Available Hooks
-
-### useWallet
-
-Connect and interact with Aleo wallets.
-
-\`\`\`typescript
-import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
-
-const { publicKey, connect, disconnect, connected } = useWallet();
-\`\`\`
-
-**Properties:**
-- \`publicKey\`: Current connected wallet address
-- \`connect()\`: Connect to wallet
-- \`disconnect()\`: Disconnect wallet
-- \`connected\`: Boolean indicating connection status
-
-### useRequestTransaction
-
-Submit transactions to Aleo programs.
-
-\`\`\`typescript
-import { useRequestTransaction } from "./wallet/utils/RequestTransaction";
-
-const { requestTransaction, loading, error } = useRequestTransaction();
-
-const handleSubmit = async () => {
-  const transaction = {
-    program: "onchainbio.aleo",
-    function: "register_bio",
-    inputs: [name, bio, currentBlock]
-  };
-  
-  const txId = await requestTransaction(transaction);
-  console.log("Transaction ID:", txId);
-};
-\`\`\`
-
-### useRequestRecords
-
-Fetch records from Aleo programs.
-
-\`\`\`typescript
-import { useRequestRecords } from "./wallet/utils/RequestRecords";
-
-const { requestRecords, loading, error } = useRequestRecords();
-
-const fetchBioRecords = async () => {
-  const records = await requestRecords("onchainbio.aleo");
-  console.log("Bio records:", records);
-};
-\`\`\`
-
-## Complete Example
-
-\`\`\`typescript
-"use client";
-
-import { useState } from "react";
-import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
-import { useRequestTransaction } from "./wallet/utils/RequestTransaction";
-import { DecryptPermission, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";
-
-export default function BioForm() {
-  const [name, setName] = useState("");
-  const [bio, setBio] = useState("");
-  const { publicKey, connect, connected } = useWallet();
-  const { requestTransaction, loading } = useRequestTransaction();
-
-  const handleSubmit = async () => {
-    if (!connected) {
-      await connect(DecryptPermission.UponRequest, WalletAdapterNetwork.Testnet);
-      return;
-    }
-
-    const transaction = {
-      program: "onchainbio.aleo",
-      function: "register_bio",
-      inputs: [name, bio, Date.now().toString()]
-    };
-
-    try {
-      const txId = await requestTransaction(transaction);
-      console.log("Transaction submitted:", txId);
-    } catch (error) {
-      console.error("Transaction failed:", error);
-    }
-  };
-
-  return (
-    <div>
-      <input value={name} onChange={(e) => setName(e.target.value)} />
-      <textarea value={bio} onChange={(e) => setBio(e.target.value)} />
-      <button onClick={handleSubmit} disabled={loading}>
-        {loading ? "Submitting..." : "Register Bio"}
-      </button>
-    </div>
-  );
-}
-\`\`\`
-    `
+    sections: [
+      {
+        title: "useWallet",
+        content: "Connect and interact with Aleo wallets",
+        type: "text"
+      },
+      {
+        title: "Import:",
+        content: 'import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";\n\nconst { publicKey, connect, disconnect, connected } = useWallet();',
+        type: "code"
+      },
+      {
+        title: "Properties:",
+        content: "publicKey: Current connected wallet address\nconnect(): Connect to wallet\ndisconnect(): Disconnect wallet\nconnected: Boolean indicating connection status",
+        type: "list"
+      },
+      {
+        title: "useRequestTransaction",
+        content: "Submit transactions to Aleo programs",
+        type: "text"
+      },
+      {
+        title: "Example:",
+        content: 'const { requestTransaction, loading } = useRequestTransaction();\n\nconst handleSubmit = async () => {\n  const transaction = {\n    program: "onchainbio.aleo",\n    function: "register_bio",\n    inputs: [name, bio, currentBlock]\n  };\n  const txId = await requestTransaction(transaction);\n};',
+        type: "code"
+      },
+      {
+        title: "useRequestRecords",
+        content: "Fetch records from Aleo programs",
+        type: "text"
+      },
+      {
+        title: "Example:",
+        content: 'const { requestRecords } = useRequestRecords();\n\nconst fetchBioRecords = async () => {\n  const records = await requestRecords("onchainbio.aleo");\n  console.log("Bio records:", records);\n};',
+        type: "code"
+      },
+      {
+        title: "Other Available Hooks",
+        content: "useRequestRecordPlaintexts: Get decrypted record plaintexts\nuseRequestTransactionHistory: Get transaction history\nuseDecryptMessage: Decrypt encrypted messages\nuseSignMessage: Sign messages with wallet",
+        type: "list"
+      }
+    ]
   },
   {
     id: "helpers",
     title: "Helper Functions",
     description: "Utility functions and common patterns",
-    content: `
-# Helper Functions and Utilities
-
-This document describes the helper functions and utilities available in the scaffold.
-
-## Wallet Utilities
-
-### RequestTransaction
-
-Submit a transaction to an Aleo program.
-
-**Location:** \`app/wallet/utils/RequestTransaction.tsx\`
-
-**Usage:**
-\`\`\`typescript
-import { useRequestTransaction } from "./wallet/utils/RequestTransaction";
-
-const { requestTransaction, loading, error } = useRequestTransaction();
-
-const txId = await requestTransaction({
-  program: "onchainbio.aleo",
-  function: "register_bio",
-  inputs: ["Alice", "Developer", "12345"]
-});
-\`\`\`
-
-### RequestRecords
-
-Fetch encrypted records from a program.
-
-**Location:** \`app/wallet/utils/RequestRecords.tsx\`
-
-**Usage:**
-\`\`\`typescript
-import { useRequestRecords } from "./wallet/utils/RequestRecords";
-
-const { requestRecords, loading } = useRequestRecords();
-
-const records = await requestRecords("onchainbio.aleo");
-\`\`\`
-
-## Common Patterns
-
-### Formatting Addresses
-
-\`\`\`typescript
-const formatAddress = (address: string, length: number = 4) => {
-  if (!address) return "";
-  if (address.length <= length * 2) return address;
-  return \`\${address.slice(0, length)}...\${address.slice(-length)}\`;
-};
-
-// Usage
-const shortAddress = formatAddress(publicKey, 4); // "aleo1...xyz"
-\`\`\`
-
-### Handling Transaction Errors
-
-\`\`\`typescript
-const handleTransaction = async () => {
-  try {
-    const txId = await requestTransaction(transaction);
-    console.log("Success:", txId);
-    // Show success message
-  } catch (error: any) {
-    if (error.message.includes("User rejected")) {
-      // User cancelled
-      console.log("Transaction cancelled");
-    } else if (error.message.includes("Insufficient")) {
-      // Not enough credits
-      console.error("Insufficient balance");
-    } else {
-      // Other error
-      console.error("Transaction failed:", error);
-    }
-  }
-};
-\`\`\`
-    `
+    sections: [
+      {
+        title: "Formatting Addresses",
+        content: 'const formatAddress = (address: string, length = 4) => {\n  if (!address) return "";\n  if (address.length <= length * 2) return address;\n  return `${address.slice(0, length)}...${address.slice(-length)}`;\n};\n\nconst shortAddress = formatAddress(publicKey, 4);',
+        type: "code"
+      },
+      {
+        title: "Handling Transaction Errors",
+        content: 'try {\n  const txId = await requestTransaction(transaction);\n  console.log("Success:", txId);\n} catch (error: any) {\n  if (error.message.includes("User rejected")) {\n    console.log("Transaction cancelled");\n  } else if (error.message.includes("Insufficient")) {\n    console.error("Insufficient balance");\n  } else {\n    console.error("Transaction failed:", error);\n  }\n}',
+        type: "code"
+      },
+      {
+        title: "Loading States",
+        content: 'const [loading, setLoading] = useState(false);\n\nconst handleAction = async () => {\n  setLoading(true);\n  try {\n    await performAction();\n  } finally {\n    setLoading(false);\n  }\n};',
+        type: "code"
+      },
+      {
+        title: "Best Practices",
+        content: "Always handle errors - Wallet operations can fail\nShow loading states - Transactions take time\nValidate inputs - Check data before submission\nUse TypeScript - Get type safety\nTest on testnet - Always test before mainnet",
+        type: "list"
+      }
+    ]
   }
 ];
 
@@ -385,7 +206,7 @@ export default function DocsPage() {
         <div className="grid md:grid-cols-4 gap-6">
           {/* Sidebar */}
           <div className="md:col-span-1">
-            <div className="bg-white rounded-lg p-4 sticky top-20">
+            <div className="bg-white rounded-lg p-4 sticky top-24">
               <h2 className="text-lg font-bold text-black mb-4">Guides</h2>
               <nav className="space-y-2">
                 {docs.map((doc) => (
@@ -409,11 +230,30 @@ export default function DocsPage() {
           {/* Content */}
           <div className="md:col-span-3">
             <div className="bg-white rounded-lg p-8">
-              <h2 className="text-3xl font-bold text-black mb-4">{selectedDoc.title}</h2>
-              <div className="prose prose-sm max-w-none">
-                <pre className="whitespace-pre-wrap text-sm text-black font-mono bg-black/5 p-4 rounded-lg overflow-x-auto">
-                  {selectedDoc.content}
-                </pre>
+              <h2 className="text-3xl font-bold text-black mb-6">{selectedDoc.title}</h2>
+              <div className="space-y-6">
+                {selectedDoc.sections.map((section, index) => (
+                  <div key={index}>
+                    {section.title && (
+                      <h3 className="text-lg font-bold text-black mb-2">{section.title}</h3>
+                    )}
+                    {section.type === "code" ? (
+                      <pre className="bg-black/5 p-4 rounded-lg overflow-x-auto">
+                        <code className="text-sm text-black font-mono whitespace-pre">
+                          {section.content}
+                        </code>
+                      </pre>
+                    ) : section.type === "list" ? (
+                      <ul className="list-disc list-inside space-y-1 text-black/80">
+                        {section.content.split('\n').map((item, i) => (
+                          <li key={i} className="ml-2">{item}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-black/80 leading-relaxed">{section.content}</p>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           </div>

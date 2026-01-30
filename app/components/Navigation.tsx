@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { WalletButton } from "../wallet/WalletButton";
 
 function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
@@ -24,51 +24,62 @@ function Logo({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   );
 }
 
+function NavLink({
+  href,
+  children,
+  isActive,
+}: {
+  href: string;
+  children: React.ReactNode;
+  isActive: boolean;
+}) {
+  const router = useRouter();
+  return (
+    <Link
+      href={href}
+      className={`font-medium transition-colors py-2 px-1 -mx-1 rounded cursor-pointer inline-block ${
+        isActive ? "text-black" : "text-black/70 hover:text-black"
+      }`}
+      onClick={(e) => {
+        if (e.ctrlKey || e.metaKey || e.button === 1) return;
+        e.preventDefault();
+        router.push(href);
+      }}
+    >
+      {children}
+    </Link>
+  );
+}
+
 export default function Navigation() {
   const pathname = usePathname();
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-black/20" style={{ backgroundColor: "#FFA977" }}>
+    <div className="sticky top-0 z-[100]">
+      <div className="text-center py-2.5 px-4 text-sm bg-black text-white">
+        Redirect to <code className="bg-white/20 px-1.5 py-0.5 rounded text-white font-medium">/bio</code>, <code className="bg-white/20 px-1.5 py-0.5 rounded text-white font-medium">/debug</code>, or <code className="bg-white/20 px-1.5 py-0.5 rounded text-white font-medium">/docs</code> by editing the route in your browser.
+      </div>
+      <nav className="border-b border-black/20" style={{ backgroundColor: "#FFA977" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center">
             <Logo size="md" />
           </Link>
-          <div className="flex items-center gap-6">
-            <Link 
-              href="/bio" 
-              className={`font-medium transition-colors ${
-                pathname === "/bio" 
-                  ? "text-black" 
-                  : "text-black/70 hover:text-black"
-              }`}
-            >
+          <div className="flex items-center gap-6 relative z-[101]">
+            <NavLink href="/bio" isActive={pathname === "/bio"}>
               Bio
-            </Link>
-            <Link 
-              href="/debug" 
-              className={`font-medium transition-colors ${
-                pathname === "/debug" 
-                  ? "text-black" 
-                  : "text-black/70 hover:text-black"
-              }`}
-            >
+            </NavLink>
+            <NavLink href="/debug" isActive={pathname === "/debug"}>
               Debug
-            </Link>
-            <Link 
-              href="/docs" 
-              className={`font-medium transition-colors ${
-                pathname === "/docs" 
-                  ? "text-black" 
-                  : "text-black/70 hover:text-black"
-              }`}
-            >
+            </NavLink>
+            <NavLink href="/docs" isActive={pathname === "/docs"}>
               Docs
-            </Link>
+            </NavLink>
             <WalletButton />
           </div>
         </div>
       </div>
     </nav>
+    </div>
   );
 }

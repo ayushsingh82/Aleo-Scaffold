@@ -3,10 +3,10 @@
 import React, { FC, useCallback, useEffect } from "react";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { useWalletModal } from "@demox-labs/aleo-wallet-adapter-reactui";
-import { WalletReadyState, DecryptPermission, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";
+import { DecryptPermission, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";
 
 export const WalletButton: FC = () => {
-  const { publicKey, disconnect, connecting, wallet, connected, connect } = useWallet();
+  const { publicKey, disconnect, connecting, wallet, connected, connect, select, wallets } = useWallet();
   const { setVisible } = useWalletModal();
 
   // Log wallet state for debugging
@@ -29,23 +29,27 @@ export const WalletButton: FC = () => {
         console.error("Error disconnecting wallet:", error);
       }
     } else {
-      console.log("Attempting to connect wallet...");
-      const readyState = wallet?.adapter?.readyState;
-      if (readyState === WalletReadyState.Installed && wallet) {
+      if (wallet?.adapter && wallet.adapter.readyState === "Installed") {
+        console.log("Wallet detected, attempting direct connection");
         try {
-          console.log("Wallet is installed and ready, attempting direct connection...");
-          await connect(DecryptPermission.UponRequest, WalletAdapterNetwork.Testnet);
-          console.log("Direct wallet connection attempted.");
+          const leoWallet = wallets.find((w) => w.adapter.name === "Leo Wallet");
+          if (leoWallet) {
+            await select(leoWallet.adapter.name);
+            await connect(DecryptPermission.UponRequest, WalletAdapterNetwork.TestnetBeta);
+          } else {
+            console.log("Leo Wallet not found, opening modal");
+            setVisible(true);
+          }
         } catch (error) {
           console.error("Direct connection failed, opening modal:", error);
-          setVisible(true); // Fallback to modal if direct connect fails
+          setVisible(true);
         }
       } else {
         console.log("Wallet not installed or ready, opening modal.");
         setVisible(true);
       }
     }
-  }, [publicKey, disconnect, setVisible, wallet, connect]);
+  }, [publicKey, disconnect, setVisible, wallet, connect, select, wallets]);
 
   return (
     <button

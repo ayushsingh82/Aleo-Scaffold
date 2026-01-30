@@ -2,68 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { WalletButton } from "./wallet/WalletButton";
+import Navigation from "./components/Navigation";
 
 export default function Home() {
-  const pathname = usePathname();
-
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#FFA977" }}>
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 sm:px-8 py-2 sm:py-3 border-b border-black/20">
-        <Link href="/" className="flex items-center gap-2 sm:gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black flex items-center justify-center">
-            <svg
-              className="w-6 h-6 sm:w-7 sm:h-7 text-white"
-              viewBox="0 0 64 64"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect x="2" y="2" width="60" height="60" rx="12" fill="white"/>
-              <ellipse cx="32" cy="34" rx="18" ry="12" stroke="black" strokeWidth="3" fill="none"/>
-              <circle cx="32" cy="34" r="8" stroke="black" strokeWidth="2.5" fill="none"/>
-              <circle cx="32" cy="34" r="4" fill="black"/>
-              <line x1="8" y1="22" x2="56" y2="18" stroke="black" strokeWidth="3" strokeLinecap="round"/>
-              <line x1="8" y1="46" x2="56" y2="50" stroke="black" strokeWidth="3" strokeLinecap="round"/>
-            </svg>
-          </div>
-          <h1 className="text-lg sm:text-2xl font-bold text-black font-serif">Aleo-Scaffold</h1>
-        </Link>
-        <div className="flex items-center gap-4 sm:gap-6">
-          <Link 
-            href="/bio" 
-            className={`font-medium transition-colors font-serif ${
-              pathname === "/bio" 
-                ? "text-black" 
-                : "text-black/70 hover:text-black"
-            }`}
-          >
-            Bio
-          </Link>
-          <Link 
-            href="/debug" 
-            className={`font-medium transition-colors font-serif ${
-              pathname === "/debug" 
-                ? "text-black" 
-                : "text-black/70 hover:text-black"
-            }`}
-          >
-            Debug
-          </Link>
-          <Link 
-            href="/docs" 
-            className={`font-medium transition-colors font-serif ${
-              pathname === "/docs" 
-                ? "text-black" 
-                : "text-black/70 hover:text-black"
-            }`}
-          >
-            Docs
-          </Link>
-          <WalletButton />
-        </div>
-      </header>
+      <Navigation />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 sm:px-8 py-8 sm:py-12 mt-8 sm:mt-12">
