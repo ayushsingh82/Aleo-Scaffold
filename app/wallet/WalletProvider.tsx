@@ -48,7 +48,10 @@ export const WalletProvider: FC<WalletProviderProps> = ({ children }) => {
     >
       <WalletModalProvider>
         {children}
-        <WalletModal />
+        {/* Wrapper allows overlay to not block page when modal is closed */}
+        <div id="wallet-modal-container" className="wallet-modal-container">
+          <WalletModal />
+        </div>
       </WalletModalProvider>
     </AleoWalletProvider>
   );

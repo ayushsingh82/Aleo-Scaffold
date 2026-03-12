@@ -12,6 +12,15 @@ A modern, open-source toolkit for building decentralized applications on the Ale
 | **Transaction** | [`at1zq7k39c76wyqspwzs55lqdj5znzhdhjkv3p09wttn45l9r5j3vrs8ng3j7`](https://testnet.explorer.provable.com/transaction/at1zq7k39c76wyqspwzs55lqdj5znzhdhjkv3p09wttn45l9r5j3vrs8ng3j7) |
 | **Program Explorer** | [View on Provable](https://testnet.explorer.provable.com/program/onchainbio.aleo) |
 
+## Project status (for reviewers)
+
+- **Done:** Page is no longer blocked by an invisible modal; the wallet modal overlay is fixed so you can interact with the Bio form and the rest of the app.
+- **Done:** Bio page buttons are wired to the Aleo network:
+  - **Register Bio** submits a real transaction to `onchainbio.aleo` (`register_bio` transition) via the Leo Wallet.
+  - **Fetch my records** / **View my Bio records** call the wallet’s `requestRecords` for `onchainbio.aleo` so you can see your own records.
+- **Note:** The current Leo program does not expose a public view/mapping for looking up other users’ bios; only the record owner can decrypt their data. A future version could add a `bio_exists` mapping and view for discovery.
+- **Planned (Wave 2+):** Update-bio flow (consuming an existing record), better docs for new developers, and more Debug console examples.
+
 ## Features
 
 - **Zero-Knowledge Privacy** - All user data is private by default using Aleo's ZK proofs
@@ -41,22 +50,42 @@ npm run dev
 
 Visit `http://localhost:3000` to access the application.
 
+## Programs & routes
+
+| Route | Program | Description |
+|-------|---------|-------------|
+| `/bio` | `onchainbio.aleo` | Register and fetch private bio profiles |
+| `/credits` | `credits.aleo` | View credit records, send public transfers |
+| `/greeting` | `greeting.aleo` | Call the `greet` transition (deploy from `program-greeting/`) |
+| `/debug` | — | Debug console for Leo programs |
+| `/docs` | — | Documentation viewer |
+
+- **onchainbio.aleo** – Custom program in `program/`; deploy with `program/deploy.sh`.
+- **credits.aleo** – Native Aleo credits program (no deploy; use from any app).
+- **greeting.aleo** – Demo program in `program-greeting/`; build with `leo build`, deploy with `program-greeting/deploy.sh`.
+
 ## Project Structure
 
 ```
-my-app/
 ├── app/
-│   ├── page.tsx           # Home page
-│   ├── bio/page.tsx       # Bio registration & viewing
-│   ├── debug/page.tsx     # Debug console for Leo programs
-│   ├── docs/page.tsx      # Documentation viewer
-│   ├── components/        # Shared React components
-│   └── wallet/            # Wallet integration utilities
-├── program/
-│   ├── src/main.leo       # onchainbio.aleo source code
-│   ├── build/             # Compiled program artifacts
-│   └── deploy.sh          # Deployment script
-└── docs/                  # Markdown documentation
+│   ├── page.tsx           # Home
+│   ├── bio/page.tsx       # onchainbio.aleo – Bio
+│   ├── credits/page.tsx   # credits.aleo – Records & transfer_public
+│   ├── greeting/page.tsx  # greeting.aleo – greet transition
+│   ├── debug/page.tsx     # Debug console
+│   ├── docs/page.tsx      # Docs
+│   ├── lib/aleo.ts        # Field encoding, program IDs
+│   ├── components/
+│   └── wallet/
+├── program/               # onchainbio.aleo
+│   ├── src/main.leo
+│   ├── build/
+│   └── deploy.sh
+├── program-greeting/      # greeting.aleo
+│   ├── src/main.leo
+│   ├── deploy.sh
+│   └── README.md
+└── docs/
 ```
 
 ## OnChainBio Program
@@ -113,6 +142,15 @@ The frontend at `app/` automatically connects to your deployed program. Use the 
 | Smart Contracts | Leo / Aleo |
 | Privacy | Zero-Knowledge Proofs |
 | Wallet | Leo Wallet Adapter |
+
+## For new developers
+
+This scaffold aims to make Aleo onboarding easier. Things that help:
+
+- **Docs** – See `/docs` in the app and the `docs/` folder for hooks and helpers.
+- **Debug page** – Use the Debug console to try program execution and inspect state.
+- **Bio flow** – Connect Leo Wallet, register a bio (real transaction), then fetch your records to see the full flow.
+- **Program** – `program/src/main.leo` is the single program; build with `leo build`, deploy with `program/deploy.sh`.
 
 ## Resources
 

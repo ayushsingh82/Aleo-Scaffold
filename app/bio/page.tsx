@@ -2,28 +2,96 @@
 
 import { useState } from "react";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
+import { Transaction, WalletAdapterNetwork, WalletNotConnectedError } from "@demox-labs/aleo-wallet-adapter-base";
 import Navigation from "../components/Navigation";
+import { PROGRAM_ID, stringToField } from "../lib/aleo";
+
+const NETWORK = WalletAdapterNetwork.TestnetBeta;
+const FEE = 150_000;
 
 export default function BioPage() {
-  const { publicKey } = useWallet();
+  const { publicKey, requestTransaction, requestRecords } = useWallet();
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
-  const [address, setAddress] = useState("");
-  const [bioData, setBioData] = useState<any>(null);
+  const [bioData, setBioData] = useState<string[] | Record<string, unknown> | null>(null);
+  const [txStatus, setTxStatus] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<"register" | "fetch" | "view" | null>(null);
 
-  const handleRegister = () => {
-    // TODO: Implement Aleo transaction submission
-    console.log("Register bio:", { name, bio });
+  const handleRegister = async () => {
+    setError(null);
+    setTxStatus(null);
+    if (!publicKey || !requestTransaction) {
+      setError("Connect your Leo wallet first.");
+      return;
+    }
+    if (!name.trim() || !bio.trim()) {
+      setError("Name and bio are required.");
+      return;
+    }
+    setLoading("register");
+    try {
+      const inputs = [
+        stringToField(name.trim()),
+        stringToField(bio.trim()),
+        "0u64", // current_block; in production you could fetch from chain
+      ];
+      const tx = Transaction.createTransaction(
+        publicKey,
+        NETWORK,
+        PROGRAM_ID,
+        "register_bio",
+        inputs,
+        FEE
+      );
+      const txId = await requestTransaction(tx);
+      setTxStatus(`Transaction submitted. ID: ${txId}`);
+      setName("");
+      setBio("");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      setError(message);
+    } finally {
+      setLoading(null);
+    }
   };
 
-  const handleFetchBio = () => {
-    // TODO: Implement Aleo resource fetching
-    console.log("Fetch bio for address:", address);
+  const handleFetchBio = async () => {
+    setError(null);
+    setBioData(null);
+    if (!publicKey || !requestRecords) {
+      setError("Connect your Leo wallet first.");
+      return;
+    }
+    setLoading("fetch");
+    try {
+      const records = await requestRecords(PROGRAM_ID);
+      setBioData(Array.isArray(records) ? records : [records]);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      setError(message);
+    } finally {
+      setLoading(null);
+    }
   };
 
-  const handleViewBio = () => {
-    // TODO: Implement Aleo view function call
-    console.log("View bio for address:", address);
+  const handleViewBio = async () => {
+    setError(null);
+    setBioData(null);
+    if (!publicKey || !requestRecords) {
+      setError("Connect your Leo wallet first.");
+      return;
+    }
+    setLoading("view");
+    try {
+      const records = await requestRecords(PROGRAM_ID);
+      setBioData(Array.isArray(records) ? records : [records]);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      setError(message);
+    } finally {
+      setLoading(null);
+    }
   };
 
   return (
@@ -35,6 +103,17 @@ export default function BioPage() {
         <p className="text-black/80 mb-8">
           This is your decentralized profile stored on the Aleo blockchain.
         </p>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg text-red-800 text-sm">
+            {error}
+          </div>
+        )}
+        {txStatus && (
+          <div className="mb-6 p-4 bg-green-100 border border-green-300 rounded-lg text-green-800 text-sm">
+            {txStatus}
+          </div>
+        )}
 
         {/* Connected Address */}
         <div className="bg-white rounded-lg p-6 mb-8">
@@ -80,77 +159,54 @@ export default function BioPage() {
             
             <button
               onClick={handleRegister}
-              className="w-full px-6 py-3 bg-black text-white rounded-lg hover:bg-black/80 transition-colors font-medium"
+              disabled={!!loading}
+              className="w-full px-6 py-3 bg-black text-white rounded-lg hover:bg-black/80 transition-colors font-medium disabled:opacity-50"
             >
-              Register Bio
+              {loading === "register" ? "Submitting…" : "Register Bio"}
             </button>
           </div>
         </div>
 
-        {/* Fetch Bio Resource */}
+        {/* Fetch Bio Records */}
         <div className="bg-white rounded-lg p-6 mb-8">
           <h2 className="text-2xl font-bold text-black mb-4">
-            Fetch Bio Resource
+            Fetch your Bio records
           </h2>
           <p className="text-black/80 text-sm mb-6">
-            Fetch bio data directly from the resource account on the Aleo blockchain using the Scaffold Aleo useGetAccountResource hook.
+            Request your <code className="bg-black/5 px-1 rounded">onchainbio.aleo</code> records from the Leo wallet. Records are private and only your wallet can decrypt them.
           </p>
           
-          <div className="space-y-4">
-            <div>
-              <label className="block text-black font-medium mb-2">Address</label>
-              <input
-                type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Enter address"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black text-black"
-              />
+          <button
+            onClick={handleFetchBio}
+            disabled={!!loading}
+            className="w-full px-6 py-3 bg-black text-white rounded-lg hover:bg-black/80 transition-colors font-medium disabled:opacity-50"
+          >
+            {loading === "fetch" ? "Fetching…" : "Fetch my records"}
+          </button>
+          
+          {bioData && (
+            <div className="mt-4 p-4 bg-black/5 rounded-lg">
+              <pre className="text-sm text-black overflow-auto max-h-64">
+                {JSON.stringify(bioData, null, 2)}
+              </pre>
             </div>
-            
-            <button
-              onClick={handleFetchBio}
-              className="w-full px-6 py-3 bg-black text-white rounded-lg hover:bg-black/80 transition-colors font-medium"
-            >
-              Fetch Bio
-            </button>
-            
-            {bioData && (
-              <div className="mt-4 p-4 bg-black/5 rounded-lg">
-                <pre className="text-sm text-black overflow-auto">
-                  {JSON.stringify(bioData, null, 2)}
-                </pre>
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
-        {/* View Bio */}
+        {/* View Bio (your records) */}
         <div className="bg-white rounded-lg p-6">
-          <h2 className="text-2xl font-bold text-black mb-4">View Bio</h2>
+          <h2 className="text-2xl font-bold text-black mb-4">View your Bio</h2>
           <p className="text-black/80 text-sm mb-6">
-            Read bio data from the Aleo blockchain using a view function using the Scaffold Aleo useView hook.
+            Bio data is stored in private records. Use this to load your own records again. (The program does not expose a public view for other addresses; that would require a mapping in the Leo program.)
           </p>
           
-          <div className="space-y-4">
-            <div>
-              <label className="block text-black font-medium mb-2">Address</label>
-              <input
-                type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="Enter address"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black text-black"
-              />
-            </div>
-            
-            <button
-              onClick={handleViewBio}
-              className="w-full px-6 py-3 bg-black text-white rounded-lg hover:bg-black/80 transition-colors font-medium"
-            >
-              View Bio
-            </button>
-          </div>
+          <button
+            onClick={handleViewBio}
+            disabled={!!loading}
+            className="w-full px-6 py-3 bg-black text-white rounded-lg hover:bg-black/80 transition-colors font-medium disabled:opacity-50"
+          >
+            {loading === "view" ? "Loading…" : "View my Bio records"}
+          </button>
         </div>
       </div>
     </div>

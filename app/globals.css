@@ -24,3 +24,11 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Fix: wallet modal overlay was blocking the entire page when closed */
+#wallet-modal-container {
+  pointer-events: none;
+}
+#wallet-modal-container [role="dialog"] {
+  pointer-events: auto;
+}

@@ -57,7 +57,7 @@ export default function Navigation() {
   return (
     <div className="sticky top-0 z-[100]">
       <div className="text-center py-2.5 px-4 text-sm bg-black text-white">
-        Redirect to <code className="bg-white/20 px-1.5 py-0.5 rounded text-white font-medium">/bio</code>, <code className="bg-white/20 px-1.5 py-0.5 rounded text-white font-medium">/debug</code>, or <code className="bg-white/20 px-1.5 py-0.5 rounded text-white font-medium">/docs</code> by editing the route in your browser.
+        Routes: <code className="bg-white/20 px-1.5 py-0.5 rounded text-white font-medium">/bio</code>, <code className="bg-white/20 px-1.5 py-0.5 rounded text-white font-medium">/credits</code>, <code className="bg-white/20 px-1.5 py-0.5 rounded text-white font-medium">/greeting</code>, <code className="bg-white/20 px-1.5 py-0.5 rounded text-white font-medium">/debug</code>, <code className="bg-white/20 px-1.5 py-0.5 rounded text-white font-medium">/docs</code>
       </div>
       <nav className="border-b border-black/20" style={{ backgroundColor: "#FFA977" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -68,6 +68,12 @@ export default function Navigation() {
           <div className="flex items-center gap-6 relative z-[101]">
             <NavLink href="/bio" isActive={pathname === "/bio"}>
               Bio
+            </NavLink>
+            <NavLink href="/credits" isActive={pathname === "/credits"}>
+              Credits
+            </NavLink>
+            <NavLink href="/greeting" isActive={pathname === "/greeting"}>
+              Greeting
             </NavLink>
             <NavLink href="/debug" isActive={pathname === "/debug"}>
               Debug
