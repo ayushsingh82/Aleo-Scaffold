@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { Transaction, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";
 import Navigation from "../components/Navigation";
-import { CREDITS_PROGRAM_ID } from "../lib/aleo";
+import { CREDITS_PROGRAM_ID, getWalletErrorMessage } from "../lib/aleo";
 
 const NETWORK = WalletAdapterNetwork.TestnetBeta;
 const FEE = 35_000;
@@ -31,7 +31,7 @@ export default function CreditsPage() {
       const recs = await requestRecords(CREDITS_PROGRAM_ID);
       setRecords(Array.isArray(recs) ? recs : [recs]);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(getWalletErrorMessage(e));
     } finally {
       setLoading(null);
     }
@@ -59,14 +59,20 @@ export default function CreditsPage() {
         CREDITS_PROGRAM_ID,
         "transfer_public",
         inputs,
-        FEE
+        FEE,
+        false
       );
       const txId = await requestTransaction(tx);
       setTxStatus(`Transfer submitted. Transaction ID: ${txId}`);
       setTransferTo("");
       setAmountCredits("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      const message = getWalletErrorMessage(e);
+      setError(
+        message.toLowerCase().includes("try again") || message.toLowerCase().includes("report")
+          ? `Transfer failed. ${message} Make sure Leo Wallet is on Testnet and you have enough credits; then try again or report the error.`
+          : message
+      );
     } finally {
       setLoading(null);
     }
@@ -84,7 +90,11 @@ export default function CreditsPage() {
 
         {error && (
           <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg text-red-800 text-sm">
-            {error}
+            <p className="font-medium">Error</p>
+            <p className="mt-1">{error}</p>
+            <p className="mt-3 text-red-700 text-xs">
+              Tip: Use Leo Wallet on <strong>Testnet</strong>, ensure you have enough credits, and approve the transaction in the wallet popup. If it still fails, try again or report the error.
+            </p>
           </div>
         )}
         {txStatus && (
@@ -109,7 +119,7 @@ export default function CreditsPage() {
           </p>
           <button
             onClick={handleFetchRecords}
-            disabled={!!loading}
+            disabled={loading === "fetch"}
             className="w-full px-6 py-3 bg-black text-white rounded-lg hover:bg-black/80 transition-colors font-medium disabled:opacity-50"
           >
             {loading === "fetch" ? "Fetching…" : "Fetch my credit records"}
@@ -151,7 +161,7 @@ export default function CreditsPage() {
             </div>
             <button
               onClick={handleTransferPublic}
-              disabled={!!loading}
+              disabled={loading === "transfer"}
               className="w-full px-6 py-3 bg-black text-white rounded-lg hover:bg-black/80 transition-colors font-medium disabled:opacity-50"
             >
               {loading === "transfer" ? "Submitting…" : "Transfer (public)"}

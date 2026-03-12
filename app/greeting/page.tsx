@@ -4,11 +4,10 @@ import { useState } from "react";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
 import { Transaction, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";
 import Navigation from "../components/Navigation";
-import { stringToField } from "../lib/aleo";
+import { GREETING_PROGRAM_ID, stringToField, getWalletErrorMessage } from "../lib/aleo";
 
-const GREETING_PROGRAM_ID = "greeting.aleo";
 const NETWORK = WalletAdapterNetwork.TestnetBeta;
-const FEE = 35_000;
+const FEE = 150_000;
 
 export default function GreetingPage() {
   const { publicKey, requestTransaction } = useWallet();
@@ -30,19 +29,26 @@ export default function GreetingPage() {
     }
     setLoading(true);
     try {
-      const inputs = [stringToField(message.trim().slice(0, 31))];
+      const trimmed = message.trim().slice(0, 25);
+      const inputs = [stringToField(trimmed)];
       const tx = Transaction.createTransaction(
         publicKey,
         NETWORK,
         GREETING_PROGRAM_ID,
         "greet",
         inputs,
-        FEE
+        FEE,
+        false
       );
       const txId = await requestTransaction(tx);
       setTxStatus(`Transaction submitted. ID: ${txId}`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      const message = getWalletErrorMessage(e);
+      setError(
+        message.toLowerCase().includes("try again") || message.toLowerCase().includes("report")
+          ? `Transaction failed. ${message} Make sure Leo Wallet is on Testnet and you have credits; then try again or report the error.`
+          : message
+      );
     } finally {
       setLoading(false);
     }
@@ -52,16 +58,15 @@ export default function GreetingPage() {
     <div className="min-h-screen" style={{ backgroundColor: "#FFA977" }}>
       <Navigation />
       <div className="max-w-4xl mx-auto px-8 py-12">
-        <h1 className="text-4xl font-bold text-black mb-2">Greeting (greeting.aleo)</h1>
-        <p className="text-black/80 mb-8">
-          Call the <code className="bg-black/10 px-1 rounded">greeting.aleo</code> program. Deploy it first from{" "}
-          <code className="bg-black/10 px-1 rounded">program-greeting/</code> with{" "}
-          <code className="bg-black/10 px-1 rounded">./deploy.sh &lt;private_key&gt;</code>.
-        </p>
+        <h1 className="text-4xl font-bold text-black mb-8">Greeting (greeting.aleo)</h1>
 
         {error && (
           <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg text-red-800 text-sm">
-            {error}
+            <p className="font-medium">Error</p>
+            <p className="mt-1">{error}</p>
+            <p className="mt-3 text-red-700 text-xs">
+              Tip: Use Leo Wallet on <strong>Testnet</strong>, ensure you have credits, and approve the transaction in the wallet popup. Greet requires <code className="bg-red-200/50 px-0.5 rounded">greeting.aleo</code> to be deployed—run <code className="bg-red-200/50 px-0.5 rounded">npm run deploy:greeting</code> from the project.
+            </p>
           </div>
         )}
         {txStatus && (
@@ -82,17 +87,17 @@ export default function GreetingPage() {
         <div className="bg-white rounded-lg p-6">
           <h2 className="text-2xl font-bold text-black mb-4">Call greet</h2>
           <p className="text-black/80 text-sm mb-4">
-            Submits a transaction to the <code className="bg-black/5 px-1 rounded">greet</code> transition with your message (max 31 chars).
+            Submits a transaction to the <code className="bg-black/5 px-1 rounded">greet</code> transition with your message (max 25 chars for encoding).
           </p>
           <div className="space-y-4">
             <div>
-              <label className="block text-black font-medium mb-2">Message</label>
+              <label className="block text-black font-medium mb-2">Message (max 25 chars)</label>
               <input
                 type="text"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Hello Aleo"
-                maxLength={31}
+                maxLength={25}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black text-black"
               />
             </div>

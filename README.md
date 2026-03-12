@@ -4,6 +4,8 @@ A modern, open-source toolkit for building decentralized applications on the Ale
 
 ## Live Deployment
 
+### onchainbio.aleo
+
 | Resource | Link |
 |----------|------|
 | **Program ID** | `onchainbio.aleo` |
@@ -11,6 +13,16 @@ A modern, open-source toolkit for building decentralized applications on the Ale
 | **Status** | Deployed |
 | **Transaction** | [`at1zq7k39c76wyqspwzs55lqdj5znzhdhjkv3p09wttn45l9r5j3vrs8ng3j7`](https://testnet.explorer.provable.com/transaction/at1zq7k39c76wyqspwzs55lqdj5znzhdhjkv3p09wttn45l9r5j3vrs8ng3j7) |
 | **Program Explorer** | [View on Provable](https://testnet.explorer.provable.com/program/onchainbio.aleo) |
+
+### greeting.aleo
+
+| Resource | Link |
+|----------|------|
+| **Program ID** | `greeting.aleo` |
+| **Network** | Testnet |
+| **Status** | Deployed |
+| **Deployment Transaction** | [`at1yhkkxfum97x58ua6rxzdtn2asmtzq7l7p29q5qtmfsqv0l0pwqxqkcryts`](https://testnet.explorer.provable.com/transaction/at1yhkkxfum97x58ua6rxzdtn2asmtzq7l7p29q5qtmfsqv0l0pwqxqkcryts) |
+| **Program Explorer** | [View on Provable](https://testnet.explorer.provable.com/program/greeting.aleo) |
 
 ## Project status (for reviewers)
 
@@ -62,7 +74,7 @@ Visit `http://localhost:3000` to access the application.
 
 - **onchainbio.aleo** – Custom program in `program/`; deploy with `program/deploy.sh`.
 - **credits.aleo** – Native Aleo credits program (no deploy; use from any app).
-- **greeting.aleo** – Demo program in `program-greeting/`; build with `leo build`, deploy with `program-greeting/deploy.sh`.
+- **greeting.aleo** – Demo program in `program-greeting/`; deploy with `npm run deploy:greeting`. Program ID after deploy: `greeting.aleo`.
 
 ## Project Structure
 

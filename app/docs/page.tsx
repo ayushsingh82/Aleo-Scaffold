@@ -1,7 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Navigation from "../components/Navigation";
+
+function CodeBlock({ content, id }: { content: string; id?: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
+  }, [content]);
+  return (
+    <div className="relative group">
+      <pre className="bg-black/5 p-4 pr-12 rounded-lg overflow-x-auto text-sm">
+        <code className="text-black font-mono whitespace-pre" id={id}>
+          {content}
+        </code>
+      </pre>
+      <button
+        type="button"
+        onClick={copy}
+        className="absolute top-2 right-2 p-1.5 rounded bg-black/10 hover:bg-black/20 text-black text-base leading-none transition-colors"
+        title="Copy code"
+        aria-label="Copy code"
+      >
+        {copied ? "✓" : "📋"}
+      </button>
+      {copied && (
+        <span className="absolute top-2 right-10 text-xs text-black/70 font-medium">
+          Copied!
+        </span>
+      )}
+    </div>
+  );
+}
+
+type SectionType = "text" | "code" | "list" | "heading" | "table";
 
 interface DocSection {
   id: string;
@@ -10,185 +48,268 @@ interface DocSection {
   sections: {
     title: string;
     content: string;
-    type?: "text" | "code" | "list" | "heading";
+    type?: SectionType;
+    rows?: string[][]; // for table: array of [col1, col2, ...]
   }[];
 }
 
 const docs: DocSection[] = [
   {
-    id: "installation",
-    title: "Installation",
-    description: "Set up your development environment and install required tools",
+    id: "overview",
+    title: "Overview & stack",
+    description: "What this scaffold uses and how it’s built",
+    sections: [
+      { title: "Tech stack", content: "", type: "heading" },
+      {
+        title: "Frontend",
+        content: "Next.js 16 (App Router), React 19, TypeScript 5, Tailwind CSS 4. Styling is utility-first with custom landing headline styles in globals.css.",
+        type: "text",
+      },
+      {
+        title: "Aleo & wallet",
+        content: "Leo for smart contracts. Wallet: @demox-labs/aleo-wallet-adapter-react, @demox-labs/aleo-wallet-adapter-reactui, @demox-labs/aleo-wallet-adapter-leo, @demox-labs/aleo-wallet-adapter-base. Network: TestnetBeta.",
+        type: "text",
+      },
+      {
+        title: "Packages (dependencies)",
+        content: "@demox-labs/aleo-wallet-adapter-base ^0.0.23\n@demox-labs/aleo-wallet-adapter-leo ^0.0.25\n@demox-labs/aleo-wallet-adapter-react ^0.0.22\n@demox-labs/aleo-wallet-adapter-reactui ^0.0.36\nnext 16.1.1, react 19.2.3, react-dom 19.2.3",
+        type: "code",
+      },
+      { title: "App routes", content: "", type: "heading" },
+      {
+        title: "Routes",
+        content: "",
+        type: "table",
+        rows: [
+          ["Route", "Program", "Purpose"],
+          ["/", "—", "Landing (Aleo blockchain Starter-Kit)"],
+          ["/bio", "onchainbio.aleo", "Register & fetch bio profiles"],
+          ["/credits", "credits.aleo", "Credit records & transfer_public"],
+          ["/greeting", "greeting.aleo", "Call greet transition"],
+          ["/debug", "—", "Debug console"],
+          ["/docs", "—", "This documentation"],
+        ],
+      },
+    ],
+  },
+  {
+    id: "architecture",
+    title: "Architecture",
+    description: "Project structure and wallet setup",
+    sections: [
+      { title: "Directory layout", content: "", type: "heading" },
+      {
+        title: "Key paths",
+        content: "app/\n  page.tsx, bio/page.tsx, credits/page.tsx, greeting/page.tsx\n  docs/page.tsx, debug/page.tsx\n  components/Navigation.tsx\n  lib/aleo.ts          # stringToField, fieldToString, PROGRAM_ID, CREDITS_PROGRAM_ID\n  wallet/\n    WalletProvider.tsx  # Aleo + Leo wallet, modal only when visible\n    WalletButton.tsx\n    utils/RequestTransaction.tsx, RequestRecords.tsx, ...\nprogram/               # onchainbio.aleo\n  src/main.leo, deploy.sh\nprogram-greeting/      # greeting.aleo\n  src/main.leo, deploy.sh",
+        type: "code",
+      },
+      {
+        title: "Wallet provider",
+        content: "WalletProvider wraps the app with AleoWalletProvider and WalletModalProvider. The wallet modal is rendered only when visible (useWalletModal().visible) so the overlay never blocks the page when closed. WalletModal uses container=\"#wallet-modal-container\" when open.",
+        type: "text",
+      },
+      {
+        title: "Network & fee",
+        content: "All transaction and wallet code uses WalletAdapterNetwork.TestnetBeta. Fee is set per call (e.g. 150_000 for register_bio, 35_000 for transfer_public and greet).",
+        type: "text",
+      },
+    ],
+  },
+  {
+    id: "programs",
+    title: "Programs reference",
+    description: "Leo programs and transitions used in this app",
+    sections: [
+      { title: "onchainbio.aleo", content: "", type: "heading" },
+      {
+        title: "Record",
+        content: "BioProfile { owner, name, bio, created_at_block, updated_at_block }",
+        type: "code",
+      },
+      {
+        title: "Transitions",
+        content: "",
+        type: "table",
+        rows: [
+          ["Transition", "Inputs", "Output"],
+          ["register_bio", "name: field, bio: field, current_block: u64", "BioProfile"],
+          ["update_bio", "bio_record: BioProfile, new_name, new_bio, current_block: u64", "BioProfile"],
+          ["get_bio", "bio_record: BioProfile", "(address, field, field, u64, u64)"],
+        ],
+      },
+      { title: "credits.aleo (native)", content: "", type: "heading" },
+      {
+        title: "Usage",
+        content: "Native program; no deploy. We use requestRecords(\"credits.aleo\") and transfer_public(receiver_address, amount_u64). Amount in microcredits (1 credit = 1_000_000).",
+        type: "text",
+      },
+      { title: "greeting.aleo", content: "", type: "heading" },
+      {
+        title: "Transition",
+        content: "greet(message: field) -> (field). Deploy from program-greeting/ with ./deploy.sh <private_key>.",
+        type: "code",
+      },
+    ],
+  },
+  {
+    id: "wallet-api",
+    title: "Wallet API",
+    description: "useWallet, Transaction, requestTransaction, requestRecords",
+    sections: [
+      { title: "useWallet", content: "", type: "heading" },
+      {
+        title: "Import and usage",
+        content: 'import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";\n\nconst {\n  publicKey,        // connected address or null\n  requestTransaction,\n  requestRecords,\n  connect,\n  disconnect,\n} = useWallet();',
+        type: "code",
+      },
+      {
+        title: "Submitting a transaction",
+        content: 'import { Transaction, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";\n\nconst network = WalletAdapterNetwork.TestnetBeta;\nconst tx = Transaction.createTransaction(\n  publicKey,\n  network,\n  "onchainbio.aleo",\n  "register_bio",\n  [stringToField(name), stringToField(bio), "0u64"],\n  150_000\n);\nconst txId = await requestTransaction(tx);',
+        type: "code",
+      },
+      {
+        title: "Fetching records",
+        content: 'const records = await requestRecords("onchainbio.aleo");\n// or requestRecords("credits.aleo");\n// Returns array of record strings (wallet may decrypt with view key).',
+        type: "code",
+      },
+      {
+        title: "RequestTransaction component",
+        content: "app/wallet/utils/RequestTransaction.tsx is a button component that takes program, functionName, inputs, fee, network and calls requestTransaction. Use it when you want a declarative trigger.",
+        type: "text",
+      },
+    ],
+  },
+  {
+    id: "lib-aleo",
+    title: "App lib: aleo.ts",
+    description: "Field encoding and program IDs",
     sections: [
       {
-        title: "Prerequisites",
-        content: "Node.js 18+, Rust (for Leo CLI), Git",
-        type: "list"
+        title: "stringToField(str, maxBytes?)",
+        content: "Encodes a string as a Leo field (UTF-8 bytes as big-integer). Default max 31 bytes. Used for transition inputs (name, bio, message).",
+        type: "text",
       },
       {
-        title: "Step 1: Install Node.js Dependencies",
-        content: "cd my-app\nnpm install",
-        type: "code"
+        title: "Example",
+        content: 'import { stringToField } from "@/app/lib/aleo";\nstringToField("Hello");  // => "72field" (or similar)\nstringToField("Hi", 31);',
+        type: "code",
       },
       {
-        title: "Step 2: Install Leo CLI",
-        content: "Leo is the programming language for Aleo. You need it to build and deploy programs.",
-        type: "text"
+        title: "fieldToString(field)",
+        content: "Decodes a Leo field string (e.g. from record or return value) back to a JavaScript string.",
+        type: "text",
       },
       {
-        title: "Option 1: Official Installer (Recommended)",
-        content: "curl -L https://get.aleo.org/install | bash",
-        type: "code"
+        title: "Constants",
+        content: 'PROGRAM_ID = "onchainbio.aleo"\nCREDITS_PROGRAM_ID = "credits.aleo"',
+        type: "code",
       },
-      {
-        title: "After installation, restart your terminal or run:",
-        content: "source ~/.zshrc  # or source ~/.bash_profile",
-        type: "code"
-      },
-      {
-        title: "Verify Leo Installation",
-        content: "leo --version",
-        type: "code"
-      },
-      {
-        title: "Step 3: Get Testnet Credits",
-        content: "Visit Aleo Faucet at faucet.aleo.org or join Aleo Discord and request credits",
-        type: "text"
-      },
-      {
-        title: "Step 4: Generate a Private Key",
-        content: "leo account new",
-        type: "code"
-      },
-      {
-        title: "Step 5: Run the Development Server",
-        content: "npm run dev",
-        type: "code"
-      },
-      {
-        title: "",
-        content: "Open http://localhost:3000 in your browser",
-        type: "text"
-      }
-    ]
+    ],
+  },
+  {
+    id: "installation",
+    title: "Installation",
+    description: "Set up the app and Leo CLI",
+    sections: [
+      { title: "Prerequisites", content: "Node.js 18+, Leo CLI, Git. Leo Wallet browser extension for testing.", type: "list" },
+      { title: "Install app deps", content: "npm install", type: "code" },
+      { title: "Leo CLI", content: "curl -L https://get.aleo.org/install | bash\nsource ~/.zshrc   # or ~/.bash_profile\nleo --version", type: "code" },
+      { title: "Run dev server", content: "npm run dev\n# Open http://localhost:3000", type: "code" },
+      { title: "Testnet", content: "Get testnet credits from faucet.aleo.org. Generate key: leo account new.", type: "text" },
+    ],
   },
   {
     id: "deployment",
     title: "Deployment",
-    description: "Learn how to deploy your Aleo program to testnet",
+    description: "Deploy Leo programs to testnet",
     sections: [
-      {
-        title: "Prerequisites",
-        content: "Leo CLI installed, Private Key with testnet credits, Program built successfully",
-        type: "list"
-      },
-      {
-        title: "Getting Testnet Credits",
-        content: "Visit Aleo Faucet (faucet.aleo.org) or Aleo Discord (discord.aleo.org)",
-        type: "text"
-      },
-      {
-        title: "Step 1: Build Your Program",
-        content: "cd program\nLEO_DISABLE_UPDATE_CHECK=1 leo build",
-        type: "code"
-      },
-      {
-        title: "Step 2: Deploy to Testnet",
-        content: "cd program\n./deploy.sh YOUR_PRIVATE_KEY",
-        type: "code"
-      },
-      {
-        title: "Or deploy manually:",
-        content: "LEO_DISABLE_UPDATE_CHECK=1 leo deploy --private-key YOUR_PRIVATE_KEY --network testnet --endpoint https://api.explorer.provable.com/v1 --yes --broadcast",
-        type: "code"
-      },
-      {
-        title: "Step 3: Verify Deployment",
-        content: "After deployment, you'll receive a Transaction ID and Program Address. Check your deployment on the Aleo Explorer at testnet.explorer.provable.com",
-        type: "text"
-      },
-      {
-        title: "Common Issues",
-        content: "Insufficient Credits: Get more testnet credits from the faucet\nProgram Already Exists: Use leo upgrade instead, or change the program name",
-        type: "list"
-      }
-    ]
+      { title: "onchainbio.aleo", content: "cd program\nleo build\n./deploy.sh YOUR_PRIVATE_KEY", type: "code" },
+      { title: "greeting.aleo", content: "cd program-greeting\nleo build\n./deploy.sh YOUR_PRIVATE_KEY", type: "code" },
+      { title: "Manual deploy", content: "LEO_DISABLE_UPDATE_CHECK=1 leo deploy --private-key KEY --network testnet --yes --broadcast", type: "code" },
+      { title: "Verify", content: "Check transaction and program on testnet.explorer.provable.com", type: "text" },
+    ],
   },
   {
-    id: "hooks",
-    title: "React Hooks",
-    description: "Custom React hooks for interacting with Aleo programs",
+    id: "hooks-helpers",
+    title: "Hooks & helpers",
+    description: "React hooks and UI utilities",
     sections: [
-      {
-        title: "useWallet",
-        content: "Connect and interact with Aleo wallets",
-        type: "text"
-      },
-      {
-        title: "Import:",
-        content: 'import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";\n\nconst { publicKey, connect, disconnect, connected } = useWallet();',
-        type: "code"
-      },
-      {
-        title: "Properties:",
-        content: "publicKey: Current connected wallet address\nconnect(): Connect to wallet\ndisconnect(): Disconnect wallet\nconnected: Boolean indicating connection status",
-        type: "list"
-      },
-      {
-        title: "useRequestTransaction",
-        content: "Submit transactions to Aleo programs",
-        type: "text"
-      },
-      {
-        title: "Example:",
-        content: 'const { requestTransaction, loading } = useRequestTransaction();\n\nconst handleSubmit = async () => {\n  const transaction = {\n    program: "onchainbio.aleo",\n    function: "register_bio",\n    inputs: [name, bio, currentBlock]\n  };\n  const txId = await requestTransaction(transaction);\n};',
-        type: "code"
-      },
-      {
-        title: "useRequestRecords",
-        content: "Fetch records from Aleo programs",
-        type: "text"
-      },
-      {
-        title: "Example:",
-        content: 'const { requestRecords } = useRequestRecords();\n\nconst fetchBioRecords = async () => {\n  const records = await requestRecords("onchainbio.aleo");\n  console.log("Bio records:", records);\n};',
-        type: "code"
-      },
-      {
-        title: "Other Available Hooks",
-        content: "useRequestRecordPlaintexts: Get decrypted record plaintexts\nuseRequestTransactionHistory: Get transaction history\nuseDecryptMessage: Decrypt encrypted messages\nuseSignMessage: Sign messages with wallet",
-        type: "list"
-      }
-    ]
+      { title: "Wallet hooks", content: "useWallet() from @demox-labs/aleo-wallet-adapter-react: publicKey, requestTransaction, requestRecords, connect, disconnect, etc.", type: "text" },
+      { title: "Modal", content: "useWalletModal() from @demox-labs/aleo-wallet-adapter-reactui: visible, setVisible(true/false).", type: "text" },
+      { title: "Wallet utils (components)", content: "RequestTransaction, RequestRecords, RequestRecordPlaintexts, RequestTransactionHistory, DeployProgram, SignMessage, DecryptMessage, SubscribeToEvents — from app/wallet/utils.", type: "list" },
+      { title: "Error handling", content: 'try {\n  const txId = await requestTransaction(tx);\n} catch (e) {\n  const msg = e instanceof Error ? e.message : String(e);\n  setError(msg);\n}', type: "code" },
+      { title: "Loading", content: "Use local state: const [loading, setLoading] = useState(false); set before request, clear in finally.", type: "code" },
+    ],
   },
   {
-    id: "helpers",
-    title: "Helper Functions",
-    description: "Utility functions and common patterns",
+    id: "troubleshooting",
+    title: "Troubleshooting",
+    description: "Common issues and fixes",
     sections: [
-      {
-        title: "Formatting Addresses",
-        content: 'const formatAddress = (address: string, length = 4) => {\n  if (!address) return "";\n  if (address.length <= length * 2) return address;\n  return `${address.slice(0, length)}...${address.slice(-length)}`;\n};\n\nconst shortAddress = formatAddress(publicKey, 4);',
-        type: "code"
-      },
-      {
-        title: "Handling Transaction Errors",
-        content: 'try {\n  const txId = await requestTransaction(transaction);\n  console.log("Success:", txId);\n} catch (error: any) {\n  if (error.message.includes("User rejected")) {\n    console.log("Transaction cancelled");\n  } else if (error.message.includes("Insufficient")) {\n    console.error("Insufficient balance");\n  } else {\n    console.error("Transaction failed:", error);\n  }\n}',
-        type: "code"
-      },
-      {
-        title: "Loading States",
-        content: 'const [loading, setLoading] = useState(false);\n\nconst handleAction = async () => {\n  setLoading(true);\n  try {\n    await performAction();\n  } finally {\n    setLoading(false);\n  }\n};',
-        type: "code"
-      },
-      {
-        title: "Best Practices",
-        content: "Always handle errors - Wallet operations can fail\nShow loading states - Transactions take time\nValidate inputs - Check data before submission\nUse TypeScript - Get type safety\nTest on testnet - Always test before mainnet",
-        type: "list"
-      }
-    ]
-  }
+      { title: "Page not clickable", content: "If the wallet modal overlay blocks the page: ensure WalletModal is only rendered when visible (see WalletProvider and WalletModalWithContainer). CSS in globals.css makes #wallet-modal-container non-blocking.", type: "text" },
+      { title: "BigInt / ES2020 build error", content: "If you see 'BigInt literals are not available when targeting lower than ES2020', use BigInt(0) and BigInt(256) instead of 0n and 256n (see app/lib/aleo.ts).", type: "text" },
+      { title: "Wrong URL /credit", content: "The app redirects /credit to /credits in next.config.ts redirects.", type: "text" },
+      { title: "Transaction fails", content: "Check: wallet connected, sufficient fee/credits, correct program id and transition name, inputs in Leo format (e.g. \"123field\", \"0u64\").", type: "list" },
+    ],
+  },
 ];
+
+function renderSectionContent(
+  section: DocSection["sections"][0],
+  index: number
+) {
+  if (section.type === "code") {
+    return <CodeBlock content={section.content} id={`code-${index}`} />;
+  }
+  if (section.type === "list") {
+    return (
+      <ul className="list-disc list-inside space-y-1 text-black/80">
+        {section.content.split("\n").map((item, i) => (
+          <li key={i} className="ml-2">{item}</li>
+        ))}
+      </ul>
+    );
+  }
+  if (section.type === "table" && section.rows?.length) {
+    const [head, ...body] = section.rows;
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full border border-black/20 rounded-lg overflow-hidden text-left">
+          <thead>
+            <tr className="bg-black/5">
+              {head.map((cell, i) => (
+                <th key={i} className="px-4 py-2 font-semibold text-black border-b border-black/20">
+                  {cell}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {body.map((row, ri) => (
+              <tr key={ri} className="border-b border-black/10 last:border-0">
+                {row.map((cell, ci) => (
+                  <td key={ci} className="px-4 py-2 text-black/80 text-sm">
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+  if (section.type === "heading") {
+    return (
+      <h3 className="text-xl font-bold text-black mt-6 mb-2 first:mt-0">
+        {section.title || section.content}
+      </h3>
+    );
+  }
+  return (
+    <p className="text-black/80 leading-relaxed">{section.content}</p>
+  );
+}
 
 export default function DocsPage() {
   const [selectedDoc, setSelectedDoc] = useState(docs[0]);
@@ -196,67 +317,62 @@ export default function DocsPage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#FFA977" }}>
       <Navigation />
-      
-      <div className="max-w-7xl mx-auto px-8 py-12">
-        <h1 className="text-4xl font-bold text-black mb-2">Documentation</h1>
-        <p className="text-black/80 mb-8">
-          Learn how to build, deploy, and interact with Aleo programs using this scaffold.
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-12">
+        <h1 className="text-3xl md:text-4xl font-bold text-black mb-2">
+          Documentation
+        </h1>
+        <p className="text-black/80 mb-6 md:mb-8 max-w-2xl">
+          Stack, architecture, programs, wallet API, and guides for this Aleo
+          scaffold.
         </p>
 
         <div className="grid md:grid-cols-4 gap-6">
-          {/* Sidebar */}
-          <div className="md:col-span-1">
-            <div className="bg-white rounded-lg p-4 sticky top-24">
-              <h2 className="text-lg font-bold text-black mb-4">Guides</h2>
-              <nav className="space-y-2">
+          <aside className="md:col-span-1">
+            <nav className="bg-white rounded-lg p-4 sticky top-24 shadow-sm">
+              <h2 className="text-lg font-bold text-black mb-4">Sections</h2>
+              <ul className="space-y-2">
                 {docs.map((doc) => (
-                  <button
-                    key={doc.id}
-                    onClick={() => setSelectedDoc(doc)}
-                    className={`w-full text-left px-3 py-2 rounded transition-colors ${
-                      selectedDoc.id === doc.id
-                        ? "bg-black text-white"
-                        : "text-black/70 hover:bg-black/5"
-                    }`}
-                  >
-                    <div className="font-medium">{doc.title}</div>
-                    <div className="text-xs mt-1 opacity-80">{doc.description}</div>
-                  </button>
+                  <li key={doc.id}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDoc(doc)}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-colors text-sm ${
+                        selectedDoc.id === doc.id
+                          ? "bg-black text-white"
+                          : "text-black/70 hover:bg-black/10"
+                      }`}
+                    >
+                      <span className="font-medium block">{doc.title}</span>
+                      <span className="text-xs mt-0.5 opacity-80 line-clamp-2">
+                        {doc.description}
+                      </span>
+                    </button>
+                  </li>
                 ))}
-              </nav>
-            </div>
-          </div>
+              </ul>
+            </nav>
+          </aside>
 
-          {/* Content */}
-          <div className="md:col-span-3">
-            <div className="bg-white rounded-lg p-8">
-              <h2 className="text-3xl font-bold text-black mb-6">{selectedDoc.title}</h2>
+          <article className="md:col-span-3">
+            <div className="bg-white rounded-lg p-6 md:p-8 shadow-sm">
+              <h2 className="text-2xl md:text-3xl font-bold text-black mb-6">
+                {selectedDoc.title}
+              </h2>
               <div className="space-y-6">
                 {selectedDoc.sections.map((section, index) => (
                   <div key={index}>
-                    {section.title && (
-                      <h3 className="text-lg font-bold text-black mb-2">{section.title}</h3>
-                    )}
-                    {section.type === "code" ? (
-                      <pre className="bg-black/5 p-4 rounded-lg overflow-x-auto">
-                        <code className="text-sm text-black font-mono whitespace-pre">
-                          {section.content}
-                        </code>
-                      </pre>
-                    ) : section.type === "list" ? (
-                      <ul className="list-disc list-inside space-y-1 text-black/80">
-                        {section.content.split('\n').map((item, i) => (
-                          <li key={i} className="ml-2">{item}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-black/80 leading-relaxed">{section.content}</p>
-                    )}
+                    {section.type !== "heading" && section.title ? (
+                      <h3 className="text-lg font-bold text-black mb-2">
+                        {section.title}
+                      </h3>
+                    ) : null}
+                    {renderSectionContent(section, index)}
                   </div>
                 ))}
               </div>
             </div>
-          </div>
+          </article>
         </div>
       </div>
     </div>

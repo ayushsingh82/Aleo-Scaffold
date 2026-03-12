@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
-import { Transaction, WalletAdapterNetwork, WalletNotConnectedError } from "@demox-labs/aleo-wallet-adapter-base";
+import { Transaction, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";
 import Navigation from "../components/Navigation";
-import { PROGRAM_ID, stringToField } from "../lib/aleo";
+import { PROGRAM_ID, stringToField, getWalletErrorMessage } from "../lib/aleo";
 
 const NETWORK = WalletAdapterNetwork.TestnetBeta;
 const FEE = 150_000;
@@ -16,7 +16,7 @@ export default function BioPage() {
   const [bioData, setBioData] = useState<string[] | Record<string, unknown> | null>(null);
   const [txStatus, setTxStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<"register" | "fetch" | "view" | null>(null);
+  const [loading, setLoading] = useState<"register" | "fetch" | null>(null);
 
   const handleRegister = async () => {
     setError(null);
@@ -42,15 +42,20 @@ export default function BioPage() {
         PROGRAM_ID,
         "register_bio",
         inputs,
-        FEE
+        FEE,
+        false // feePrivate: false — pay fee in public credits (recommended for testnet)
       );
       const txId = await requestTransaction(tx);
       setTxStatus(`Transaction submitted. ID: ${txId}`);
       setName("");
       setBio("");
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      setError(message);
+      const message = getWalletErrorMessage(e);
+      setError(
+        message.toLowerCase().includes("try again") || message.toLowerCase().includes("report")
+          ? `Transaction failed. ${message} Make sure Leo Wallet is on Testnet and you have credits; then try again or report the error.`
+          : message
+      );
     } finally {
       setLoading(null);
     }
@@ -66,29 +71,10 @@ export default function BioPage() {
     setLoading("fetch");
     try {
       const records = await requestRecords(PROGRAM_ID);
-      setBioData(Array.isArray(records) ? records : [records]);
+      const list = Array.isArray(records) ? records : records != null ? [records] : [];
+      setBioData(list);
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      setError(message);
-    } finally {
-      setLoading(null);
-    }
-  };
-
-  const handleViewBio = async () => {
-    setError(null);
-    setBioData(null);
-    if (!publicKey || !requestRecords) {
-      setError("Connect your Leo wallet first.");
-      return;
-    }
-    setLoading("view");
-    try {
-      const records = await requestRecords(PROGRAM_ID);
-      setBioData(Array.isArray(records) ? records : [records]);
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      setError(message);
+      setError(getWalletErrorMessage(e));
     } finally {
       setLoading(null);
     }
@@ -106,12 +92,16 @@ export default function BioPage() {
 
         {error && (
           <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg text-red-800 text-sm">
-            {error}
+            <p className="font-medium">Error</p>
+            <p className="mt-1">{error}</p>
+            <p className="mt-3 text-red-700 text-xs">
+              Tip: Use Leo Wallet on <strong>Testnet</strong>, ensure you have credits, and approve the transaction in the wallet popup. Keep name and bio under 25 characters. &quot;Unknown error&quot; often means: wallet not on Testnet, popup rejected, or program not deployed—try again or report the error.
+            </p>
           </div>
         )}
         {txStatus && (
           <div className="mb-6 p-4 bg-green-100 border border-green-300 rounded-lg text-green-800 text-sm">
-            {txStatus}
+            <p>{txStatus}</p>
           </div>
         )}
 
@@ -131,35 +121,37 @@ export default function BioPage() {
             Register or Update Your Bio
           </h2>
           <p className="text-black/80 text-sm mb-6">
-            Enter your name and a short bio to store on-chain using the useSubmitTransaction hook from Scaffold Aleo.
+            Enter your name and a short bio to store on-chain. Keep under 25 characters each so the transaction is accepted. The fee is paid from your <strong>public</strong> credits (not private records). Use Leo Wallet on <strong>Testnet</strong> and approve the popup.
           </p>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-black font-medium mb-2">Your Name</label>
+              <label className="block text-black font-medium mb-2">Your Name (max 25 chars)</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter your name"
+                maxLength={25}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black text-black"
               />
             </div>
             
             <div>
-              <label className="block text-black font-medium mb-2">Your Bio</label>
+              <label className="block text-black font-medium mb-2">Your Bio (max 25 chars)</label>
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="Write a short bio about yourself"
+                placeholder="Write a short bio"
                 rows={4}
+                maxLength={25}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black text-black"
               />
             </div>
             
             <button
               onClick={handleRegister}
-              disabled={!!loading}
+              disabled={loading === "register"}
               className="w-full px-6 py-3 bg-black text-white rounded-lg hover:bg-black/80 transition-colors font-medium disabled:opacity-50"
             >
               {loading === "register" ? "Submitting…" : "Register Bio"}
@@ -178,35 +170,25 @@ export default function BioPage() {
           
           <button
             onClick={handleFetchBio}
-            disabled={!!loading}
+            disabled={loading === "fetch"}
             className="w-full px-6 py-3 bg-black text-white rounded-lg hover:bg-black/80 transition-colors font-medium disabled:opacity-50"
           >
             {loading === "fetch" ? "Fetching…" : "Fetch my records"}
           </button>
           
-          {bioData && (
+          {bioData !== null && (
             <div className="mt-4 p-4 bg-black/5 rounded-lg">
-              <pre className="text-sm text-black overflow-auto max-h-64">
-                {JSON.stringify(bioData, null, 2)}
-              </pre>
+              {Array.isArray(bioData) && bioData.length === 0 ? (
+                <p className="text-black/80 text-sm">
+                  No records found. If you just registered, wait a few moments and try again. Ensure your wallet has decryption permission for this program.
+                </p>
+              ) : (
+                <pre className="text-sm text-black overflow-auto max-h-64">
+                  {JSON.stringify(bioData, null, 2)}
+                </pre>
+              )}
             </div>
           )}
-        </div>
-
-        {/* View Bio (your records) */}
-        <div className="bg-white rounded-lg p-6">
-          <h2 className="text-2xl font-bold text-black mb-4">View your Bio</h2>
-          <p className="text-black/80 text-sm mb-6">
-            Bio data is stored in private records. Use this to load your own records again. (The program does not expose a public view for other addresses; that would require a mapping in the Leo program.)
-          </p>
-          
-          <button
-            onClick={handleViewBio}
-            disabled={!!loading}
-            className="w-full px-6 py-3 bg-black text-white rounded-lg hover:bg-black/80 transition-colors font-medium disabled:opacity-50"
-          >
-            {loading === "view" ? "Loading…" : "View my Bio records"}
-          </button>
         </div>
       </div>
     </div>
