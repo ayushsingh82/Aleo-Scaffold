@@ -16,7 +16,7 @@ function CodeBlock({ content, id }: { content: string; id?: string }) {
   }, [content]);
   return (
     <div className="relative group">
-      <pre className="bg-black/5 p-4 pr-12 rounded-lg overflow-x-auto text-sm">
+      <pre className="bg-black/5 p-3 sm:p-4 pr-10 sm:pr-12 rounded-lg overflow-x-auto text-xs sm:text-sm min-w-0">
         <code className="text-black font-mono whitespace-pre" id={id}>
           {content}
         </code>
@@ -24,7 +24,7 @@ function CodeBlock({ content, id }: { content: string; id?: string }) {
       <button
         type="button"
         onClick={copy}
-        className="absolute top-2 right-2 p-1.5 rounded bg-black/10 hover:bg-black/20 text-black text-base leading-none transition-colors"
+        className="absolute top-2 right-2 p-1.5 rounded bg-black/10 hover:bg-black/20 text-black text-sm leading-none transition-colors"
         title="Copy code"
         aria-label="Copy code"
       >
@@ -86,6 +86,7 @@ const docs: DocSection[] = [
           ["/bio", "onchainbio.aleo", "Register & fetch bio profiles"],
           ["/credits", "credits.aleo", "Credit records & transfer_public"],
           ["/greeting", "greeting.aleo", "Call greet transition"],
+          ["/explorer", "—", "AleoLens explorer (sidebar + embed)"],
           ["/debug", "—", "Debug console"],
           ["/docs", "—", "This documentation"],
         ],
@@ -100,7 +101,7 @@ const docs: DocSection[] = [
       { title: "Directory layout", content: "", type: "heading" },
       {
         title: "Key paths",
-        content: "app/\n  page.tsx, bio/page.tsx, credits/page.tsx, greeting/page.tsx\n  docs/page.tsx, debug/page.tsx\n  components/Navigation.tsx\n  lib/aleo.ts          # stringToField, fieldToString, PROGRAM_ID, CREDITS_PROGRAM_ID\n  wallet/\n    WalletProvider.tsx  # Aleo + Leo wallet, modal only when visible\n    WalletButton.tsx\n    utils/RequestTransaction.tsx, RequestRecords.tsx, ...\nprogram/               # onchainbio.aleo\n  src/main.leo, deploy.sh\nprogram-greeting/      # greeting.aleo\n  src/main.leo, deploy.sh",
+        content: "app/\n  page.tsx, bio/page.tsx, credits/page.tsx, greeting/page.tsx\n  explorer/page.tsx, docs/page.tsx, debug/page.tsx\n  components/Navigation.tsx\n  lib/aleo.ts          # stringToField, fieldToString, PROGRAM_ID, CREDITS_PROGRAM_ID\n  wallet/\n    WalletProvider.tsx  # Aleo + Leo wallet, modal only when visible\n    WalletButton.tsx\n    utils/RequestTransaction.tsx, RequestRecords.tsx, ...\nprogram/               # onchainbio.aleo\n  src/main.leo, deploy.sh\nprogram-greeting/      # greeting.aleo\n  src/main.leo, deploy.sh",
         type: "code",
       },
       {
@@ -207,6 +208,54 @@ const docs: DocSection[] = [
     ],
   },
   {
+    id: "explorer",
+    title: "Explorer (AleoLens)",
+    description: "Embedded AleoLens explorer and APIs used for data",
+    sections: [
+      {
+        title: "Explorer page",
+        content: "The /explorer route embeds AleoLens in an iframe with a sidebar. Sidebar sections: Overview, Blocks, Transactions, Programs, DeFi, Validators, API Documentation. Base URL is set by NEXT_PUBLIC_ALEOLENS_URL (default: http://localhost:3001). Run the AleoLens app (see AleoLens folder) on port 3001 to use the embedded explorer.",
+        type: "text",
+      },
+      {
+        title: "AleoLens features",
+        content: "Network overview (latest block, tx metrics), blocks list and block details, transaction history and lookup, program source and mappings, validators/committee, DeFi analytics (TVL, tokens). All data comes from Provable APIs; no database required.",
+        type: "text",
+      },
+      { title: "APIs used by AleoLens (Provable)", content: "", type: "heading" },
+      {
+        title: "V2 REST (dashboard, metrics)",
+        content: "",
+        type: "table",
+        rows: [
+          ["Method", "Endpoint", "Description"],
+          ["GET", "/api/v2/block/latest", "Latest block information"],
+          ["GET", "/api/v2/block/height/latest", "Latest block height"],
+          ["GET", "/api/v2/block/hash/latest", "Latest block hash"],
+          ["GET", "/api/v2/metrics/transactions", "Transaction metrics per day"],
+        ],
+      },
+      {
+        title: "V1 (blocks, transactions, programs)",
+        content: "",
+        type: "table",
+        rows: [
+          ["Method", "Endpoint", "Description"],
+          ["GET", "/api/blocks", "Paginated blocks (?page=1&limit=20&height=optional)"],
+          ["GET", "/api/blocks/[height]", "Block by height with transactions"],
+          ["GET", "/api/transactions", "Recent transactions (?limit=50&program=optional)"],
+          ["GET", "/api/programs", "Program source and mappings (?id=credits.aleo)"],
+          ["GET", "/api/validators", "Committee validators"],
+        ],
+      },
+      {
+        title: "Base URLs",
+        content: "Provable v1: https://api.explorer.provable.com/v1/mainnet (or /testnet)\nProvable v2: https://api.explorer.provable.com/v2/mainnet (or /testnet)\nRate limit: 5 req/s, 100k req/day.",
+        type: "code",
+      },
+    ],
+  },
+  {
     id: "installation",
     title: "Installation",
     description: "Set up the app and Leo CLI",
@@ -263,7 +312,7 @@ function renderSectionContent(
   }
   if (section.type === "list") {
     return (
-      <ul className="list-disc list-inside space-y-1 text-black/80">
+      <ul className="list-disc list-inside space-y-1 text-black/80 text-sm sm:text-base">
         {section.content.split("\n").map((item, i) => (
           <li key={i} className="ml-2">{item}</li>
         ))}
@@ -273,12 +322,12 @@ function renderSectionContent(
   if (section.type === "table" && section.rows?.length) {
     const [head, ...body] = section.rows;
     return (
-      <div className="overflow-x-auto">
-        <table className="w-full border border-black/20 rounded-lg overflow-hidden text-left">
+      <div className="overflow-x-auto -mx-1 sm:mx-0">
+        <table className="w-full border border-black/20 rounded-lg overflow-hidden text-left min-w-[280px]">
           <thead>
             <tr className="bg-black/5">
               {head.map((cell, i) => (
-                <th key={i} className="px-4 py-2 font-semibold text-black border-b border-black/20">
+                <th key={i} className="px-2 sm:px-4 py-2 font-semibold text-black border-b border-black/20 text-xs sm:text-sm">
                   {cell}
                 </th>
               ))}
@@ -288,7 +337,7 @@ function renderSectionContent(
             {body.map((row, ri) => (
               <tr key={ri} className="border-b border-black/10 last:border-0">
                 {row.map((cell, ci) => (
-                  <td key={ci} className="px-4 py-2 text-black/80 text-sm">
+                  <td key={ci} className="px-2 sm:px-4 py-2 text-black/80 text-xs sm:text-sm break-words">
                     {cell}
                   </td>
                 ))}
@@ -301,13 +350,13 @@ function renderSectionContent(
   }
   if (section.type === "heading") {
     return (
-      <h3 className="text-xl font-bold text-black mt-6 mb-2 first:mt-0">
+      <h3 className="text-lg sm:text-xl font-bold text-black mt-4 sm:mt-6 mb-2 first:mt-0">
         {section.title || section.content}
       </h3>
     );
   }
   return (
-    <p className="text-black/80 leading-relaxed">{section.content}</p>
+    <p className="text-black/80 leading-relaxed text-sm sm:text-base">{section.content}</p>
   );
 }
 
@@ -318,17 +367,39 @@ export default function DocsPage() {
     <div className="min-h-screen" style={{ backgroundColor: "#FFA977" }}>
       <Navigation />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-8 md:py-12">
-        <h1 className="text-3xl md:text-4xl font-bold text-black mb-2">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-12">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-black mb-2">
           Documentation
         </h1>
-        <p className="text-black/80 mb-6 md:mb-8 max-w-2xl">
+        <p className="text-black/80 mb-4 sm:mb-6 md:mb-8 max-w-2xl text-sm sm:text-base">
           Stack, architecture, programs, wallet API, and guides for this Aleo
           scaffold.
         </p>
 
-        <div className="grid md:grid-cols-4 gap-6">
-          <aside className="md:col-span-1">
+        {/* Mobile: section dropdown */}
+        <div className="md:hidden mb-4">
+          <label htmlFor="docs-section-select" className="sr-only">
+            Choose section
+          </label>
+          <select
+            id="docs-section-select"
+            value={selectedDoc.id}
+            onChange={(e) => {
+              const doc = docs.find((d) => d.id === e.target.value);
+              if (doc) setSelectedDoc(doc);
+            }}
+            className="w-full rounded-lg border-2 border-black/20 bg-white px-4 py-3 text-black font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-black/30"
+          >
+            {docs.map((doc) => (
+              <option key={doc.id} value={doc.id}>
+                {doc.title}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid md:grid-cols-4 gap-4 md:gap-6">
+          <aside className="hidden md:block md:col-span-1">
             <nav className="bg-white rounded-lg p-4 sticky top-24 shadow-sm">
               <h2 className="text-lg font-bold text-black mb-4">Sections</h2>
               <ul className="space-y-2">
@@ -354,16 +425,16 @@ export default function DocsPage() {
             </nav>
           </aside>
 
-          <article className="md:col-span-3">
-            <div className="bg-white rounded-lg p-6 md:p-8 shadow-sm">
-              <h2 className="text-2xl md:text-3xl font-bold text-black mb-6">
+          <article className="min-w-0 md:col-span-3">
+            <div className="bg-white rounded-lg p-4 sm:p-6 md:p-8 shadow-sm">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-black mb-4 sm:mb-6">
                 {selectedDoc.title}
               </h2>
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {selectedDoc.sections.map((section, index) => (
                   <div key={index}>
                     {section.type !== "heading" && section.title ? (
-                      <h3 className="text-lg font-bold text-black mb-2">
+                      <h3 className="text-base sm:text-lg font-bold text-black mb-2">
                         {section.title}
                       </h3>
                     ) : null}

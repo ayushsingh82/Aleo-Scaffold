@@ -1,254 +1,255 @@
 "use client";
 
 import { useState } from "react";
+import { useWallet } from "@demox-labs/aleo-wallet-adapter-react";
+import { Transaction, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";
 import Navigation from "../components/Navigation";
+import {
+  PROGRAM_ID,
+  GREETING_PROGRAM_ID,
+  stringToField,
+  getWalletErrorMessage,
+} from "../lib/aleo";
+
+const NETWORK = WalletAdapterNetwork.TestnetBeta;
+const FEE = 150_000;
 
 export default function DebugPage() {
-  const [selectedTab, setSelectedTab] = useState<"bio" | "poem">("bio");
-  const [onchainBioAddress, setOnchainBioAddress] = useState("0x5d2c589056728b30e3e644d5dff3b999433e3f1648aa622bbeb9027d7310d88d");
-  const [onchainPoemsAddress, setOnchainPoemsAddress] = useState("0x5d2c589056728b30e3e644d5dff3b999433e3f1648aa622bbeb9027d7310d88d");
-  
-  const [bioViewAddress, setBioViewAddress] = useState("");
-  const [bioRegisterName, setBioRegisterName] = useState("");
-  const [bioRegisterBio, setBioRegisterBio] = useState("");
-  
-  const [poemViewAddress, setPoemViewAddress] = useState("");
-  const [poemRegisterTitle, setPoemRegisterTitle] = useState("");
-  const [poemRegisterContent, setPoemRegisterContent] = useState("");
-  const [poemRegisterAuthor, setPoemRegisterAuthor] = useState("");
+  const { publicKey, requestTransaction, requestRecords } = useWallet();
+  const [selectedTab, setSelectedTab] = useState<"bio" | "greeting">("bio");
 
-  const handleBioView = () => {
-    console.log("View bio for:", bioViewAddress);
+  // Bio tab state
+  const [bioName, setBioName] = useState("");
+  const [bioBio, setBioBio] = useState("");
+  const [bioRecords, setBioRecords] = useState<unknown>(null);
+  const [bioTxStatus, setBioTxStatus] = useState<string | null>(null);
+
+  // Greeting tab state
+  const [greetingMessage, setGreetingMessage] = useState("");
+  const [greetingTxStatus, setGreetingTxStatus] = useState<string | null>(null);
+
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const clearFeedback = () => {
+    setError(null);
+    setBioTxStatus(null);
+    setGreetingTxStatus(null);
+    setBioRecords(null);
   };
 
-  const handleBioRegister = () => {
-    console.log("Register bio:", { name: bioRegisterName, bio: bioRegisterBio });
+  const handleBioFetchRecords = async () => {
+    clearFeedback();
+    if (!publicKey || !requestRecords) {
+      setError("Connect your Leo wallet first.");
+      return;
+    }
+    setLoading("bio-fetch");
+    try {
+      const records = await requestRecords(PROGRAM_ID);
+      const list = Array.isArray(records) ? records : records != null ? [records] : [];
+      setBioRecords(list.length ? list : "No records found for your wallet.");
+    } catch (e) {
+      setError(getWalletErrorMessage(e));
+    } finally {
+      setLoading(null);
+    }
   };
 
-  const handlePoemView = () => {
-    console.log("View poem for:", poemViewAddress);
+  const handleBioRegister = async () => {
+    clearFeedback();
+    if (!publicKey || !requestTransaction) {
+      setError("Connect your Leo wallet first.");
+      return;
+    }
+    const name = bioName.trim().slice(0, 25);
+    const bio = bioBio.trim().slice(0, 25);
+    if (!name || !bio) {
+      setError("Name and bio are required (max 25 chars each).");
+      return;
+    }
+    setLoading("bio-register");
+    try {
+      const inputs = [stringToField(name), stringToField(bio), "0u64"];
+      const tx = Transaction.createTransaction(
+        publicKey,
+        NETWORK,
+        PROGRAM_ID,
+        "register_bio",
+        inputs,
+        FEE,
+        false
+      );
+      const txId = await requestTransaction(tx);
+      setBioTxStatus(`Submitted. ID: ${txId}`);
+      setBioName("");
+      setBioBio("");
+    } catch (e) {
+      setError(getWalletErrorMessage(e));
+    } finally {
+      setLoading(null);
+    }
   };
 
-  const handlePoemRegister = () => {
-    console.log("Register poem:", { 
-      title: poemRegisterTitle, 
-      content: poemRegisterContent,
-      author: poemRegisterAuthor 
-    });
-  };
-
-  const shortAddress = (addr: string) => {
-    if (addr.length <= 10) return addr;
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  const handleGreetingCall = async () => {
+    clearFeedback();
+    if (!publicKey || !requestTransaction) {
+      setError("Connect your Leo wallet first.");
+      return;
+    }
+    const msg = greetingMessage.trim().slice(0, 25);
+    if (!msg) {
+      setError("Message is required (max 25 chars).");
+      return;
+    }
+    setLoading("greeting");
+    try {
+      const inputs = [stringToField(msg)];
+      const tx = Transaction.createTransaction(
+        publicKey,
+        NETWORK,
+        GREETING_PROGRAM_ID,
+        "greet",
+        inputs,
+        FEE,
+        false
+      );
+      const txId = await requestTransaction(tx);
+      setGreetingTxStatus(`Submitted. ID: ${txId}`);
+      setGreetingMessage("");
+    } catch (e) {
+      setError(getWalletErrorMessage(e));
+    } finally {
+      setLoading(null);
+    }
   };
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#FFA977" }}>
       <Navigation />
-      
-      <div className="max-w-6xl mx-auto px-8 py-12">
-        <h1 className="text-4xl font-bold text-black mb-2">Debug</h1>
-        <p className="text-black/80 mb-8">
-          You can debug & interact with your deployed modules here.
-          Check packages/nextjs/app/debug/page.tsx
-        </p>
 
-        {/* Tabs */}
-        <div className="flex gap-4 mb-6">
-          <button
-            onClick={() => setSelectedTab("bio")}
-            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-              selectedTab === "bio"
-                ? "bg-black text-white"
-                : "bg-white text-black hover:bg-white/80"
-            }`}
-          >
-            Bio
-          </button>
-          <button
-            onClick={() => setSelectedTab("poem")}
-            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-              selectedTab === "poem"
-                ? "bg-black text-white"
-                : "bg-white text-black hover:bg-white/80"
-            }`}
-          >
-            Poem
-          </button>
-        </div>
+      <div className="max-w-4xl mx-auto px-8 py-12">
+        <h1 className="text-4xl font-bold text-black mb-6">Debug</h1>
 
-        {/* Onchain Bio Module */}
-        {selectedTab === "bio" && (
-        <div className="bg-white rounded-lg p-6 mb-8">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-black">onchain_bio</h2>
-            <p className="text-black/60 text-sm mt-1">Program: onchainbio.aleo</p>
-          </div>
-
-          {/* View Function */}
-          <div className="mb-6 p-4 bg-black/5 rounded-lg">
-            <h3 className="text-lg font-bold text-black mb-3">View</h3>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-black font-medium mb-2">get_bio</label>
-                <div className="space-y-2">
-                  <div>
-                    <label className="block text-black/70 text-sm mb-1">arg0:</label>
-                    <input
-                      type="text"
-                      value={bioViewAddress}
-                      onChange={(e) => setBioViewAddress(e.target.value)}
-                      placeholder="address"
-                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm text-black"
-                    />
-                  </div>
-                  <button
-                    onClick={handleBioView}
-                    className="px-4 py-2 bg-black text-white rounded hover:bg-black/80 transition-colors text-sm font-medium"
-                  >
-                    Run
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Register Function */}
-          <div className="mb-6 p-4 bg-black/5 rounded-lg">
-            <h3 className="text-lg font-bold text-black mb-3">register</h3>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-black/70 text-sm mb-1">arg0:</label>
-                <input
-                  type="text"
-                  value={bioRegisterName}
-                  onChange={(e) => setBioRegisterName(e.target.value)}
-                  placeholder="0x1::string::String"
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm text-black mb-2"
-                />
-              </div>
-              <div>
-                <label className="block text-black/70 text-sm mb-1">arg1:</label>
-                <input
-                  type="text"
-                  value={bioRegisterBio}
-                  onChange={(e) => setBioRegisterBio(e.target.value)}
-                  placeholder="0x1::string::String"
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm text-black mb-2"
-                />
-              </div>
-              <button
-                onClick={handleBioRegister}
-                className="px-4 py-2 bg-black text-white rounded hover:bg-black/80 transition-colors text-sm font-medium"
-              >
-                Run
-              </button>
-            </div>
-          </div>
-
-          {/* Resources */}
-          <div className="p-4 bg-black/5 rounded-lg">
-            <h3 className="text-lg font-bold text-black mb-3">Resources</h3>
-            <div className="space-y-2 text-sm">
-              <div className="text-black/70">0x1::account::Account</div>
-              <div className="text-black/70">root:{`{...}`}</div>
-              <div className="text-black/70">0x1::code::PackageRegistry</div>
-              <div className="text-black/70">root:{`{...}`}</div>
-            </div>
-          </div>
-        </div>
+        {publicKey && (
+          <p className="text-black/70 text-sm font-mono mb-6 break-all">Connected: {publicKey}</p>
         )}
 
-        {/* Onchain Poems Module */}
-        {selectedTab === "poem" && (
-        <div className="bg-white rounded-lg p-6">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-black">onchain_poems</h2>
-            <p className="text-black/60 text-sm mt-1">Program: onchainpoems.aleo</p>
+        {error && (
+          <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg text-red-800 text-sm">
+            {error}
           </div>
+        )}
+        {(bioTxStatus || greetingTxStatus) && (
+          <div className="mb-6 p-4 bg-green-100 border border-green-300 rounded-lg text-green-800 text-sm">
+            {bioTxStatus || greetingTxStatus}
+          </div>
+        )}
 
-          {/* View Function */}
-          <div className="mb-6 p-4 bg-black/5 rounded-lg">
-            <h3 className="text-lg font-bold text-black mb-3">View</h3>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-black font-medium mb-2">get_poem</label>
-                <div className="space-y-2">
-                  <div>
-                    <label className="block text-black/70 text-sm mb-1">arg0:</label>
-                    <input
-                      type="text"
-                      value={poemViewAddress}
-                      onChange={(e) => setPoemViewAddress(e.target.value)}
-                      placeholder="address"
-                      className="w-full px-3 py-2 border border-gray-300 rounded text-sm text-black"
-                    />
-                  </div>
-                  <button
-                    onClick={handlePoemView}
-                    className="px-4 py-2 bg-black text-white rounded hover:bg-black/80 transition-colors text-sm font-medium"
-                  >
-                    Run
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Register Function */}
-          <div className="mb-6 p-4 bg-black/5 rounded-lg">
-            <h3 className="text-lg font-bold text-black mb-3">register</h3>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-black/70 text-sm mb-1">arg0:</label>
-                <input
-                  type="text"
-                  value={poemRegisterTitle}
-                  onChange={(e) => setPoemRegisterTitle(e.target.value)}
-                  placeholder="0x1::string::String"
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm text-black mb-2"
-                />
-              </div>
-              <div>
-                <label className="block text-black/70 text-sm mb-1">arg1:</label>
-                <input
-                  type="text"
-                  value={poemRegisterContent}
-                  onChange={(e) => setPoemRegisterContent(e.target.value)}
-                  placeholder="0x1::string::String"
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm text-black mb-2"
-                />
-              </div>
-              <div>
-                <label className="block text-black/70 text-sm mb-1">arg2:</label>
-                <input
-                  type="text"
-                  value={poemRegisterAuthor}
-                  onChange={(e) => setPoemRegisterAuthor(e.target.value)}
-                  placeholder="0x1::string::String"
-                  className="w-full px-3 py-2 border border-gray-300 rounded text-sm text-black mb-2"
-                />
-              </div>
-              <button
-                onClick={handlePoemRegister}
-                className="px-4 py-2 bg-black text-white rounded hover:bg-black/80 transition-colors text-sm font-medium"
-              >
-                Run
-              </button>
-            </div>
-          </div>
-
-          {/* Resources */}
-          <div className="p-4 bg-black/5 rounded-lg">
-            <h3 className="text-lg font-bold text-black mb-3">Resources</h3>
-            <div className="space-y-2 text-sm">
-              <div className="text-black/70">0x1::account::Account</div>
-              <div className="text-black/70">root:{`{...}`}</div>
-              <div className="text-black/70">0x1::code::PackageRegistry</div>
-              <div className="text-black/70">root:{`{...}`}</div>
-            </div>
-          </div>
+        <div className="flex gap-4 mb-6">
+          <button
+            onClick={() => { setSelectedTab("bio"); clearFeedback(); }}
+            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+              selectedTab === "bio" ? "bg-black text-white" : "bg-white text-black hover:bg-white/80"
+            }`}
+          >
+            Bio (onchainbio.aleo)
+          </button>
+          <button
+            onClick={() => { setSelectedTab("greeting"); clearFeedback(); }}
+            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+              selectedTab === "greeting" ? "bg-black text-white" : "bg-white text-black hover:bg-white/80"
+            }`}
+          >
+            Greeting (greeting.aleo)
+          </button>
         </div>
+
+        {selectedTab === "bio" && (
+          <div className="bg-white rounded-lg p-6">
+            <h2 className="text-2xl font-bold text-black mb-2">onchainbio.aleo</h2>
+            <p className="text-black/60 text-sm mb-6">Register a profile or fetch your private Bio records.</p>
+
+            <div className="space-y-6">
+              <div className="p-4 bg-black/5 rounded-lg">
+                <h3 className="text-lg font-bold text-black mb-3">Fetch my records</h3>
+                <p className="text-black/70 text-sm mb-3">Request decrypted Bio records from your wallet.</p>
+                <button
+                  onClick={handleBioFetchRecords}
+                  disabled={!!loading}
+                  className="px-4 py-2 bg-black text-white rounded hover:bg-black/80 disabled:opacity-50 text-sm font-medium"
+                >
+                  {loading === "bio-fetch" ? "Fetching…" : "Fetch records"}
+                </button>
+                {bioRecords !== null && (
+                  <pre className="mt-4 p-3 bg-black/5 rounded text-xs overflow-x-auto text-black max-h-48 overflow-y-auto">
+                    {typeof bioRecords === "string"
+                      ? bioRecords
+                      : JSON.stringify(bioRecords, null, 2)}
+                  </pre>
+                )}
+              </div>
+
+              <div className="p-4 bg-black/5 rounded-lg">
+                <h3 className="text-lg font-bold text-black mb-3">register_bio</h3>
+                <p className="text-black/70 text-sm mb-3">Submit name and bio (max 25 chars each).</p>
+                <div className="space-y-2 mb-3">
+                  <input
+                    type="text"
+                    value={bioName}
+                    onChange={(e) => setBioName(e.target.value)}
+                    placeholder="Name (max 25)"
+                    maxLength={25}
+                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm text-black"
+                  />
+                  <input
+                    type="text"
+                    value={bioBio}
+                    onChange={(e) => setBioBio(e.target.value)}
+                    placeholder="Bio (max 25)"
+                    maxLength={25}
+                    className="w-full px-3 py-2 border border-gray-300 rounded text-sm text-black"
+                  />
+                </div>
+                <button
+                  onClick={handleBioRegister}
+                  disabled={!!loading}
+                  className="px-4 py-2 bg-black text-white rounded hover:bg-black/80 disabled:opacity-50 text-sm font-medium"
+                >
+                  {loading === "bio-register" ? "Submitting…" : "Run register_bio"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {selectedTab === "greeting" && (
+          <div className="bg-white rounded-lg p-6">
+            <h2 className="text-2xl font-bold text-black mb-2">greeting.aleo</h2>
+            <p className="text-black/60 text-sm mb-6">Call the greet transition with a short message.</p>
+
+            <div className="p-4 bg-black/5 rounded-lg">
+              <h3 className="text-lg font-bold text-black mb-3">greet</h3>
+              <p className="text-black/70 text-sm mb-3">Message (max 25 chars).</p>
+              <div className="flex gap-2 flex-wrap">
+                <input
+                  type="text"
+                  value={greetingMessage}
+                  onChange={(e) => setGreetingMessage(e.target.value)}
+                  placeholder="e.g. Hello Aleo"
+                  maxLength={25}
+                  className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded text-sm text-black"
+                />
+                <button
+                  onClick={handleGreetingCall}
+                  disabled={!!loading}
+                  className="px-4 py-2 bg-black text-white rounded hover:bg-black/80 disabled:opacity-50 text-sm font-medium"
+                >
+                  {loading === "greeting" ? "Submitting…" : "Run greet"}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { href: "/bio", label: "Bio" },
   { href: "/credits", label: "Credits" },
   { href: "/greeting", label: "Greeting" },
+  { href: "/explorer", label: "Explorer" },
   { href: "/debug", label: "Debug" },
   { href: "/docs", label: "Docs" },
 ] as const;
